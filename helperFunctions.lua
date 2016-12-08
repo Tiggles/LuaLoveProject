@@ -1,14 +1,4 @@
-BoundingBox = {}
-
-function BoundingBox:new(x, y, height, width)
-	newBoundingBox = {
-		x = x, y = y, height = height, width = width 
-	}
-	self.__index = self
-	return setmetatable(newBoundingBox, self)
-end
-
-function BoundingBox:checkCollision(other)
+function checkCollision(self, other)
 	local self_left = self.x
     local self_right = self.x + self.width
     local self_top = self.y

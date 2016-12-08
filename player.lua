@@ -1,4 +1,4 @@
-require "boundingbox"
+require "acceleration"
 
 Player = {}
 
@@ -9,14 +9,7 @@ function Player:new(old, x, y, height, width, sprite)
 		height = height,
 		width = width,
 		sprite = sprite,
-		acceleration = {
-			speedX = 0,
-			speedY = 0,
-			delta = 5,
-			min = -20,
-			max = 20
-		},
-		boundingBox = BoundingBox:new(x, y, height, width) 
+		acceleration = Acceleration:newPlayerAcceleration()
 	}
 	self.__index = self
 	return setmetatable(newPlayer, self)
@@ -49,7 +42,6 @@ function Player:handleInput(delta_time)
 		self.acceleration.speedY = math.max(self.acceleration.speedY - (self.acceleration.delta * 2 * delta_time), 0)
 	end
 
-
 	-- Other
 	if love.keyboard.isDown("escape") then
 		love.event.quit();
@@ -60,7 +52,8 @@ function Player:handleInput(delta_time)
 	end
 
 	self.acceleration.speedX = math.max(math.min(self.acceleration.speedX, self.acceleration.max), self.acceleration.min)
-	
+	self.acceleration.speedY = math.max(math.min(self.acceleration.speedY, self.acceleration.max), self.acceleration.min)
+
 	self.x = math.min(math.max(self.x + self.acceleration.speedX, 0), screen.width - self.width)
 	self.y = math.min(math.max(self.y + self.acceleration.speedY, 0), screen.height - self.height)
 end
