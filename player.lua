@@ -1,5 +1,7 @@
 require "acceleration"
 
+nextTimeChangeAllowed = love.timer.getTime() + 1
+time_rising = true
 Player = {}
 
 function Player:new(old, x, y, height, width, sprite)
@@ -56,4 +58,18 @@ function Player:handleInput(delta_time)
 
 	self.x = math.min(math.max(self.x + self.acceleration.speedX, 0), screen.width - self.width)
 	self.y = math.min(math.max(self.y + self.acceleration.speedY, 0), screen.height - self.height)
+
+	explode = false
+	time_change = false
+
+	if love.keyboard.isDown("e") then
+		explode = true
+	end
+
+	if love.keyboard.isDown("q") and love.timer.getTime() > nextTimeChangeAllowed then
+		time_rising = not time_rising
+		nextTimeChangeAllowed = love.timer.getTime() + 1
+	end 
+
+	return explode, time_rising
 end

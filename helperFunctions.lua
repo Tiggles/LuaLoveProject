@@ -18,3 +18,13 @@ function checkCollision(self, other)
         return false
     end
 end
+
+function updateGameSpeed(game_speed, delta_time, time_rising)
+    print(time_rising)
+    if time_rising then
+        game_speed = math.min(game_speed + delta_time, 1)
+    else
+        game_speed = math.max(game_speed - delta_time, 0.5)
+    end
+    return game_speed
+end
