@@ -2,7 +2,6 @@ require "room"
 require "enemies"
 require "player"
 require "items"
-local constants = require "constants"
 require "helperFunctions"
 -- Window Initialization
 
@@ -12,6 +11,7 @@ love.window.setTitle( "Generic Planet Mover and Attractor" )
 
 -- Value Initialization
 
+local constants = require "constants"
 player = Player:new(nil, 0, 0, 20, 20, nil)
 enemies = {}
 game_speed = 1

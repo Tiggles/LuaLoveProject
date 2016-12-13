@@ -1,13 +1,14 @@
 require "constants"
 
-room = {}
---[[
-function Room:new()
-	newRoom = {
-		height = ,
-		width = ,
-		leftBoundary = ,
-		rightBoundary = ,
+Room = {}
 
+function Room:new(height, width, leftBoundary, rightBoundary)
+	newRoom = {
+		height = height,
+		width = width,
+		leftBoundary = leftBoundary,
+		rightBoundary = rightBoundary
 	}
-end]]--
+	self.__index = self
+	return setmetatable(newRoom, room)
+end
