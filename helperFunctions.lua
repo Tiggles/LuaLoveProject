@@ -1,4 +1,4 @@
-function checkCollision(self, other)
+function check_collision(self, other)
 	local self_left = self.x
     local self_right = self.x + self.width
     local self_top = self.y
@@ -21,9 +21,8 @@ end
 
 function updateGameSpeed(game_speed, delta_time, time_rising)
     if time_rising then
-        game_speed = math.min(game_speed + delta_time, 1)
+        return math.min(game_speed + delta_time, 1)
     else
-        game_speed = math.max(game_speed - delta_time, 0.5)
+        return math.max(game_speed - delta_time, 0.5)
     end
-    return game_speed
 end

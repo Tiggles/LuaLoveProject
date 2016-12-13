@@ -4,6 +4,7 @@ nextTimeChangeAllowed = love.timer.getTime() + 1
 time_rising = true
 Player = {}
 is_jumping = false
+use_keyboard = true
 
 function Player:new(old, x, y, height, width, sprite)
 	newPlayer = {
@@ -22,7 +23,15 @@ end
 
 
 function Player:handleInput(delta_time, game_speed)
-	-- Horizontal movement
+	if use_keyboard then
+		return self:handleKeyBoardInput(delta_time, game_speed)
+	else 
+		return self:handleControllerInput(delta_time, game_speed)
+	end
+end
+
+function Player:handleKeyBoardInput(delta_time, game_speed)
+		-- Horizontal movement
 	if love.keyboard.isDown("left") and not love.keyboard.isDown("right") then
 		self.velocity.speedX = self.velocity.speedX - self.velocity.delta * delta_time * game_speed
 	elseif self.velocity.speedX < 0 then 
@@ -35,7 +44,7 @@ function Player:handleInput(delta_time, game_speed)
 	end
 
 	-- Vertical movement
-	--[[if love.keyboard.isDown("up") and not love.keyboard.isDown("down") then
+	if love.keyboard.isDown("up") and not love.keyboard.isDown("down") then
 		self.velocity.speedY = self.velocity.speedY - self.velocity.delta * delta_time * game_speed
 	elseif self.velocity.speedY < 0 then 
 		self.velocity.speedY = math.min(self.velocity.speedY + (self.velocity.delta * 2 * delta_time), 0)
@@ -44,17 +53,17 @@ function Player:handleInput(delta_time, game_speed)
 		self.velocity.speedY = self.velocity.speedY + self.velocity.delta * delta_time * game_speed
 	elseif self.velocity.speedY > 0 then 
 		self.velocity.speedY = math.max(self.velocity.speedY - (self.velocity.delta * 2 * delta_time), 0)
-	end]]--
+	end
 
 	-- Jumping
-	if love.keyboard.isDown("space") and not is_jumping then
+	--[[if love.keyboard.isDown("space") and not is_jumping then
 		self.velocity.speedY = self.velocity.speedY + self.jumpheight
 		is_jumping = true
 	elseif love.keyboard.isDown("space") then
 		self.velocity.speedY = self.velocity.speedY + delta_time * game_speed * 0.8
 	else
 		self.velocity.speedY = self.velocity.speedY + delta_time * game_speed
-	end
+	end]]--
 
 	-- Other
 	if love.keyboard.isDown("escape") then
@@ -81,7 +90,11 @@ function Player:handleInput(delta_time, game_speed)
 	if love.keyboard.isDown("q") and love.timer.getTime() > nextTimeChangeAllowed then
 		time_rising = not time_rising
 		nextTimeChangeAllowed = love.timer.getTime() + 1
-	end 
+	end
 
 	return explode, time_rising
+end
+
+function Player:handleControllerInput(delta_time, game_speed)
+	-- body
 end
