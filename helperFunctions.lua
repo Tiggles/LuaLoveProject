@@ -20,7 +20,6 @@ function checkCollision(self, other)
 end
 
 function updateGameSpeed(game_speed, delta_time, time_rising)
-    print(time_rising)
     if time_rising then
         game_speed = math.min(game_speed + delta_time, 1)
     else

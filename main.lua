@@ -15,6 +15,7 @@ love.window.setTitle( "Generic Planet Mover" )
 player = Player:new(nil, 0, 0, 20, 20, nil)
 enemies = {}
 game_speed = 1
+in_focus = false
 
 function love.load()
 	player.image = love.graphics.newImage("BILD1321.png")
@@ -25,7 +26,13 @@ function love.load()
 	end
 end
 
+function love.focus(focus)
+	in_focus = focus
+end
+
 function love.update(delta_time)
+	if not in_focus then return end
+	
 	local explode, time_rising = player:handleInput(delta_time)
 	table.insert(enemies, Grunt:new(400, 1500))
 	game_speed = updateGameSpeed(game_speed, delta_time, time_rising)
