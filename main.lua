@@ -21,7 +21,7 @@ function love.load()
 	player.image = love.graphics.newImage("BILD1321.png")
 	background = love.graphics.newImage("background.jpg")
 	love.graphics.setBackgroundColor( 0, 0, 25 )
-	for i=1,400 do
+	for i = 1, 400 do
 		table.insert(enemies, Grunt:new(10*i , 5*i))
 	end
 end
@@ -31,11 +31,12 @@ function love.focus(focus)
 end
 
 function love.update(delta_time)
+	game_speed = updateGameSpeed(game_speed, delta_time, time_rising)
+
 	if not in_focus then return end
 
-	local explode, time_rising = player:handleInput(delta_time)
+	local explode, time_rising = player:handleInput(delta_time, game_speed)
 	table.insert(enemies, Grunt:new(400, 1500))
-	game_speed = updateGameSpeed(game_speed, delta_time, time_rising)
 	if explode then
 		for i = #enemies, 1, -1 do
 			if enemies[i].x > player.x then
