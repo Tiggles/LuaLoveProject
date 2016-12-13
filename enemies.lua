@@ -1,4 +1,4 @@
-require "acceleration"
+require "velocity"
 
 Grunt = {}
 
@@ -9,7 +9,7 @@ function Grunt:new(x, y)
 		height = 2,
 		width = 2,
 		weight = 1 + (love.math.random() / 2),
-		acceleration = Acceleration:newGruntAcceleration()
+		velocity = Velocity:newGruntVelocity()
 	}
 	self.__index = self
 	return setmetatable(newGrunt, self)
@@ -20,28 +20,28 @@ function Grunt:getSprite()
 end
 
 function Grunt:update(delta_time, player, game_speed)
-	Grunt:move(delta_time, self, player, game_speed)
+	self:move(delta_time, player, game_speed)
 end
 
 function Grunt:attack()
 
 end
 
-function Grunt:move(delta_time, grunt, player, game_speed)
-	if (player.x < grunt.x) then
-		grunt.acceleration.speedX = grunt.acceleration.speedX - grunt.acceleration.delta * delta_time * game_speed
-	elseif (player.x > grunt.x) then
-		grunt.acceleration.speedX = grunt.acceleration.speedX + grunt.acceleration.delta * delta_time * game_speed
+function Grunt:move(delta_time, player, game_speed)
+	if (player.x < self.x) then
+		self.velocity.speedX = self.velocity.speedX - self.velocity.delta * delta_time * game_speed
+	elseif (player.x > self.x) then
+		self.velocity.speedX = self.velocity.speedX + self.velocity.delta * delta_time * game_speed
 	end
-	if (player.y > grunt.y) then
-		grunt.acceleration.speedY = grunt.acceleration.speedY + grunt.acceleration.delta * delta_time * game_speed
-	elseif (player.y < grunt.y) then
-		grunt.acceleration.speedY = grunt.acceleration.speedY - grunt.acceleration.delta * delta_time * game_speed
+	if (player.y > self.y) then
+		self.velocity.speedY = self.velocity.speedY + self.velocity.delta * delta_time * game_speed
+	elseif (player.y < self.y) then
+		self.velocity.speedY = self.velocity.speedY - self.velocity.delta * delta_time * game_speed
 	end
 
-	grunt.acceleration.speedX = math.max(math.min(grunt.acceleration.speedX, grunt.acceleration.max), grunt.acceleration.min)
-	grunt.acceleration.speedY = math.max(math.min(grunt.acceleration.speedY, grunt.acceleration.max), grunt.acceleration.min)
+	self.velocity.speedX = math.max(math.min(self.velocity.speedX, self.velocity.max), self.velocity.min)
+	self.velocity.speedY = math.max(math.min(self.velocity.speedY, self.velocity.max), self.velocity.min)
 
-	grunt.x = grunt.x + (grunt.acceleration.speedX * grunt.weight * game_speed)
-	grunt.y = grunt.y + (grunt.acceleration.speedY * grunt.weight * game_speed)
+	self.x = self.x + (self.velocity.speedX * self.weight * game_speed)
+	self.y = self.y + (self.velocity.speedY * self.weight * game_speed)
 end

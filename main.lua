@@ -8,7 +8,7 @@ require "helperFunctions"
 
 screen = { width = 800, height = 600, flags = nil}
 love.window.setMode( screen.width, screen.height, { resizable = false, vsync = true, minwidth = 800, minheight=600, fullscreen=false })
-love.window.setTitle( "Generic Planet Mover" )
+love.window.setTitle( "Generic Planet Mover and Attractor" )
 
 -- Value Initialization
 
@@ -32,21 +32,21 @@ end
 
 function love.update(delta_time)
 	if not in_focus then return end
-	
+
 	local explode, time_rising = player:handleInput(delta_time)
 	table.insert(enemies, Grunt:new(400, 1500))
 	game_speed = updateGameSpeed(game_speed, delta_time, time_rising)
 	if explode then
 		for i = #enemies, 1, -1 do
 			if enemies[i].x > player.x then
-				enemies[i].acceleration.speedX = enemies[i].acceleration.speedX + 10 * delta_time * game_speed
+				enemies[i].velocity.speedX = enemies[i].velocity.speedX + 10 * delta_time * game_speed
 			else
-				enemies[i].acceleration.speedX = enemies[i].acceleration.speedX - 10 * delta_time * game_speed
+				enemies[i].velocity.speedX = enemies[i].velocity.speedX - 10 * delta_time * game_speed
 			end
 			if enemies[i].y > player.y then
-				enemies[i].acceleration.speedY = enemies[i].acceleration.speedY + 10 * delta_time * game_speed
+				enemies[i].velocity.speedY = enemies[i].velocity.speedY + 10 * delta_time * game_speed
 			else
-				enemies[i].acceleration.speedY = enemies[i].acceleration.speedY - 10 * delta_time * game_speed
+				enemies[i].velocity.speedY = enemies[i].velocity.speedY - 10 * delta_time * game_speed
 			end
 		end	
 	end
@@ -71,5 +71,5 @@ function love.draw()
 	-- HUD
 	love.graphics.printf("FPS: " .. love.timer.getFPS(), 20, 10, 1000, "left" )
 	love.graphics.printf("Particles: " .. #enemies, 20, 20, 1000, "left" )
-	love.graphics.printf("Time: " .. game_speed, 20, 30, 1000, "left" )
+	love.graphics.printf("Gamespeed: " .. game_speed, 20, 30, 1000, "left" )
 end
