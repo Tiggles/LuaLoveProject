@@ -69,7 +69,8 @@ function love.update(delta_time)
 	for i = #blocks, 1, -1 do
 		local block = blocks[i]
 		if check_collision(block, player) then
-			
+			player.velocity.speedY = 0
+			player.velocity.speedX = 0
 		end
 	end
 end
