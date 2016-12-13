@@ -48,7 +48,7 @@ function Player:handleInput(delta_time, game_speed)
 
 	-- Jumping
 	if love.keyboard.isDown("space") and not is_jumping then
-		self.velocity.speedY = self.jumpheight
+		self.velocity.speedY = self.velocity.speedY + self.jumpheight
 		is_jumping = true
 	elseif love.keyboard.isDown("space") then
 		self.velocity.speedY = self.velocity.speedY + delta_time * game_speed * 0.8
