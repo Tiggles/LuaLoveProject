@@ -1,11 +1,12 @@
 require "velocity"
+require "position"
+
 
 Grunt = {}
 
 function Grunt:new(x, y)
 	newGrunt = {
-		x = x,
-		y = y,
+		position = Position:new(x, y),
 		height = 2,
 		width = 2,
 		weight = 1 + (love.math.random() / 2),
@@ -28,20 +29,20 @@ function Grunt:attack()
 end
 
 function Grunt:move(delta_time, player, game_speed)
-	if (player.x < self.x) then
+	if (player.position.x < self.position.x) then
 		self.velocity.speedX = self.velocity.speedX - self.velocity.delta * delta_time * game_speed
-	elseif (player.x > self.x) then
+	elseif (player.position.x > self.position.x) then
 		self.velocity.speedX = self.velocity.speedX + self.velocity.delta * delta_time * game_speed
 	end
-	if (player.y > self.y) then
+	if (player.position.y > self.position.y) then
 		self.velocity.speedY = self.velocity.speedY + self.velocity.delta * delta_time * game_speed
-	elseif (player.y < self.y) then
+	elseif (player.position.y < self.position.y) then
 		self.velocity.speedY = self.velocity.speedY - self.velocity.delta * delta_time * game_speed
 	end
 
 	self.velocity.speedX = math.max(math.min(self.velocity.speedX, self.velocity.max), self.velocity.min)
 	self.velocity.speedY = math.max(math.min(self.velocity.speedY, self.velocity.max), self.velocity.min)
 
-	self.x = self.x + (self.velocity.speedX * self.weight * game_speed)
-	self.y = self.y + (self.velocity.speedY * self.weight * game_speed)
+	self.position.x = self.position.x + (self.velocity.speedX * self.weight * game_speed)
+	self.position.y = self.position.y + (self.velocity.speedY * self.weight * game_speed)
 end

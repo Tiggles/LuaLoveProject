@@ -1,4 +1,5 @@
 require "velocity"
+require "position"
 
 nextTimeChangeAllowed = love.timer.getTime() + 1
 time_rising = true
@@ -9,8 +10,7 @@ top_down = true
 
 function Player:new(old, x, y, height, width, sprite)
 	newPlayer = {
-		x = x,
-		y = y,
+		position = Position:new(x, y),
 		height = height,
 		width = width,
 		sprite = sprite,
@@ -95,8 +95,8 @@ function Player:handleKeyBoardInput(delta_time, game_speed)
 	self.velocity.speedX = math.max(math.min(self.velocity.speedX, self.velocity.max), self.velocity.min)
 	self.velocity.speedY = math.max(math.min(self.velocity.speedY, self.velocity.max), self.velocity.min)
 
-	self.x = self.x + self.velocity.speedX * game_speed
-	self.y = self.y + self.velocity.speedY * game_speed
+	self.position.x = self.position.x + self.velocity.speedX * game_speed
+	self.position.y = self.position.y + self.velocity.speedY * game_speed
 	
 	explode = false
 	time_change = false

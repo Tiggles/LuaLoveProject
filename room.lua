@@ -28,8 +28,7 @@ Block = {}
 
 function Block:newRock(x, y, width, height)
 	newRock = {
-		x = x,
-		y = y,
+		position = Position:new(x, y),
 		width = width,
 		height = height
 	}

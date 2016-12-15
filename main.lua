@@ -21,8 +21,8 @@ in_focus = false
 --current_room = Room:newRoom()
 
 function love.load()
-	player.image = love.graphics.newImage("BILD1321.png")
-	background = love.graphics.newImage("background.jpg")
+	player.image = love.graphics.newImage("Assets/BILD1321.png")
+	background = love.graphics.newImage("Assets/background.jpg")
 	love.graphics.setBackgroundColor( 0, 0, 25 )
 	table.insert(blocks, Block:newRock(200, 200, 50, 50))
 	table.insert(blocks, Block:newRock(400, 200, 50, 50))
@@ -82,19 +82,19 @@ function love.draw()
 	for i = #blocks, 1, -1 do
 		local block = blocks[i];
 		--love.graphics.draw(block.image, block.x, block.y, 0, 0, 0, 0, 0, 0, 0)
-		love.graphics.rectangle("fill", block.x, block.y, block.width, block.height)
+		love.graphics.rectangle("fill", block.position.x, block.position.y, block.width, block.height)
 	end
 
 	-- Draw Items
 
 	-- Draw player
-	love.graphics.rectangle("fill", player.x, player.y, player.width, player.height)
-	love.graphics.draw(player.image, player.x, player.y, 0, 0.013, 0.013, player.width / 2, player.height / 2, 0, 0)
+	love.graphics.rectangle("fill", player.position.x, player.position.y, player.width, player.height)
+	love.graphics.draw(player.image, player.position.x, player.position.y, 0, 0.013, 0.013, player.width / 2, player.height / 2, 0, 0)
 
 	-- Draw enemies
 	for i = #enemies, 1, -1 do
 		local enemy = enemies[i]
-		love.graphics.rectangle("fill", enemy.x, enemy.y, enemy.width, enemy.height)
+		love.graphics.rectangle("fill", enemy.position.x, enemy.position.y, enemy.width, enemy.height)
 	end
 
 
