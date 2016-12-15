@@ -5,6 +5,7 @@ time_rising = true
 Player = {}
 is_jumping = false
 use_keyboard = true
+top_down = true
 
 function Player:new(old, x, y, height, width, sprite)
 	newPlayer = {
@@ -31,38 +32,55 @@ function Player:handleInput(delta_time, game_speed)
 end
 
 function Player:handleKeyBoardInput(delta_time, game_speed)
-		-- Horizontal movement
-	if love.keyboard.isDown("left") and not love.keyboard.isDown("right") then
-		self.velocity.speedX = self.velocity.speedX - self.velocity.delta * delta_time * game_speed
-	elseif self.velocity.speedX < 0 then 
-		self.velocity.speedX = math.min(self.velocity.speedX + (self.velocity.delta * 2 * delta_time), 0)
-	end
-	if love.keyboard.isDown("right") and not love.keyboard.isDown("left") then
-		self.velocity.speedX = self.velocity.speedX + self.velocity.delta * delta_time * game_speed
-	elseif self.velocity.speedX > 0 then
-		self.velocity.speedX = math.max(self.velocity.speedX - (self.velocity.delta * 2 * delta_time), 0)
+	if top_down then
+		if love.keyboard.isDown("left") and not love.keyboard.isDown("right") then
+			self.velocity.speedX = self.velocity.speedX - self.velocity.delta * delta_time * game_speed
+		elseif self.velocity.speedX < 0 then 
+			self.velocity.speedX = math.min(self.velocity.speedX + (self.velocity.delta * 2 * delta_time), 0)
+		end
+		if love.keyboard.isDown("right") and not love.keyboard.isDown("left") then
+			self.velocity.speedX = self.velocity.speedX + self.velocity.delta * delta_time * game_speed
+		elseif self.velocity.speedX > 0 then
+			self.velocity.speedX = math.max(self.velocity.speedX - (self.velocity.delta * 2 * delta_time), 0)
+		end
+
+		--Vertical movement
+		if love.keyboard.isDown("up") and not love.keyboard.isDown("down") then
+			self.velocity.speedY = self.velocity.speedY - self.velocity.delta * delta_time * game_speed
+		elseif self.velocity.speedY < 0 then 
+			self.velocity.speedY = math.min(self.velocity.speedY + (self.velocity.delta * 2 * delta_time), 0)
+		end
+		if love.keyboard.isDown("down") and not love.keyboard.isDown("up") then
+			self.velocity.speedY = self.velocity.speedY + self.velocity.delta * delta_time * game_speed
+		elseif self.velocity.speedY > 0 then 
+			self.velocity.speedY = math.max(self.velocity.speedY - (self.velocity.delta * 2 * delta_time), 0)
+		end
 	end
 
-	-- Vertical movement
-	--[[if love.keyboard.isDown("up") and not love.keyboard.isDown("down") then
-		self.velocity.speedY = self.velocity.speedY - self.velocity.delta * delta_time * game_speed
-	elseif self.velocity.speedY < 0 then 
-		self.velocity.speedY = math.min(self.velocity.speedY + (self.velocity.delta * 2 * delta_time), 0)
-	end
-	if love.keyboard.isDown("down") and not love.keyboard.isDown("up") then
-		self.velocity.speedY = self.velocity.speedY + self.velocity.delta * delta_time * game_speed
-	elseif self.velocity.speedY > 0 then 
-		self.velocity.speedY = math.max(self.velocity.speedY - (self.velocity.delta * 2 * delta_time), 0)
-	end]]--
+	if side_ways then
+		if love.keyboard.isDown("left") and not love.keyboard.isDown("right") then
+			self.velocity.speedX = self.velocity.speedX - self.velocity.delta * delta_time * game_speed
+		elseif self.velocity.speedX < 0 then 
+			self.velocity.speedX = math.min(self.velocity.speedX + (self.velocity.delta * 2 * delta_time), 0)
+		end
+		if love.keyboard.isDown("right") and not love.keyboard.isDown("left") then
+			self.velocity.speedX = self.velocity.speedX + self.velocity.delta * delta_time * game_speed
+		elseif self.velocity.speedX > 0 then
+			self.velocity.speedX = math.max(self.velocity.speedX - (self.velocity.delta * 2 * delta_time), 0)
+		end
+		-- Jumping
+		if love.keyboard.isDown("space") and not is_jumping then
+			self.velocity.speedY = self.jumpheight
+			is_jumping = true
+		elseif love.keyboard.isDown("space") then
+			self.velocity.speedY = self.velocity.speedY + self.velocity.delta * delta_time * game_speed * 1.8
+		else
+			self.velocity.speedY = self.velocity.speedY + self.velocity.delta * delta_time * game_speed * 2
+		end
+		-- Attacking
+		if love.keyboard.isDown("w") then
 
-	-- Jumping
-	if love.keyboard.isDown("space") and not is_jumping then
-		self.velocity.speedY = self.jumpheight
-		is_jumping = true
-	elseif love.keyboard.isDown("space") then
-		self.velocity.speedY = self.velocity.speedY + delta_time * game_speed * 1.8
-	else
-		self.velocity.speedY = self.velocity.speedY + delta_time * game_speed * 2
+		end
 	end
 
 	-- Other
@@ -96,5 +114,5 @@ function Player:handleKeyBoardInput(delta_time, game_speed)
 end
 
 function Player:handleControllerInput(delta_time, game_speed)
-	-- body
+
 end

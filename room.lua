@@ -6,14 +6,13 @@ kinds = {
 
 Room = {}
 
-function Room:new(height, width, left_boundary, right_boundary, top_boundary, bottom_boundary)
+function Room:new(height, width)
 	newRoom = {
 		height = height,
 		width = width,
-		left_boundary = left_boundary,
-		right_boundary = right_boundary,
-		top_boundary = top_boundary,
-		bottom_boundary = bottom_boundary
+		items = {},
+		blocks = {},
+		enemies = {}
 	}
 	self.__index = self
 	return setmetatable(newRoom, self)

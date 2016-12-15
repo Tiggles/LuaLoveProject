@@ -19,7 +19,7 @@ function check_collision(self, other)
     end
 end
 
-function updateGameSpeed(game_speed, delta_time, time_rising)
+function update_gameSpeed(game_speed, delta_time, time_rising)
     if time_rising then
         return math.min(game_speed + delta_time, 1)
     else

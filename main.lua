@@ -2,7 +2,7 @@ require "room"
 require "enemies"
 require "player"
 require "items"
-require "helperFunctions"
+require "helper_functions"
 
 -- Window Initialization
 
@@ -38,12 +38,19 @@ end
 
 function love.update(delta_time)
 
-	game_speed = updateGameSpeed(game_speed, delta_time, time_rising)
+	game_speed = update_gameSpeed(game_speed, delta_time, time_rising)
 
 	if not in_focus then return end
 
+	for i = #blocks, 1, -1 do
+		local block = blocks[i]
+		if check_collision(block, player) then
+			
+		end
+	end
+
 	local explode, time_rising = player:handleInput(delta_time, game_speed)
---	table.insert(enemies, Grunt:new(400, 1500))
+
 	if explode then
 		for i = #enemies, 1, -1 do
 			if enemies[i].x > player.x then
@@ -65,19 +72,19 @@ function love.update(delta_time)
 			table.remove(enemies, i)
 		end
 	end
-
-	for i = #blocks, 1, -1 do
-		local block = blocks[i]
-		if check_collision(block, player) then
-			player.velocity.speedY = 0
-			player.velocity.speedX = 0
-		end
-	end
 end
 
 function love.draw()
 	-- Draw Room
 	love.graphics.draw(background)
+
+	-- Draw blocks
+	for i = #blocks, 1, -1 do
+		local block = blocks[i];
+		--love.graphics.draw(block.image, block.x, block.y, 0, 0, 0, 0, 0, 0, 0)
+		love.graphics.rectangle("fill", block.x, block.y, block.width, block.height)
+	end
+
 	-- Draw Items
 
 	-- Draw player
@@ -89,11 +96,7 @@ function love.draw()
 		local enemy = enemies[i]
 		love.graphics.rectangle("fill", enemy.x, enemy.y, enemy.width, enemy.height)
 	end
-	-- Draw blocks
-	for i = #blocks, 1, -1 do
-		local block = blocks[i];
-		love.graphics.rectangle("fill", block.x, block.y, block.width, block.height)
-	end
+
 
 	-- HUD
 	love.graphics.printf("FPS: " .. love.timer.getFPS(), 20, 10, 1000, "left" )
