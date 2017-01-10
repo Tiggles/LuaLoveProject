@@ -105,23 +105,26 @@ function love.draw()
 	-- Draw Room
 	love.graphics.draw(background)
 
+	local x_offset = (entities.player.position.x - (screen.width / 2) - entities.player.width / 2)
+	local y_offset = (entities.player.position.y - screen.height / 2 - entities.player.height / 2)
+
 	-- Draw blocks
 	for i = #entities.blocks, 1, -1 do
 		local block = entities.blocks[i];
 		--love.graphics.draw(block.image, block.x, block.y, 0, 0, 0, 0, 0, 0, 0)
-		love.graphics.rectangle("fill", block.position.x, block.position.y, block.width, block.height)
+		love.graphics.rectangle("fill", block.position.x - x_offset, block.position.y - y_offset, block.width, block.height)
 	end
 
 	-- Draw Items
 
 	-- Draw player
-	love.graphics.rectangle("fill", entities.player.position.x, entities.player.position.y, entities.player.width, entities.player.height)
-	love.graphics.draw(entities.player.sprite.sprite, entities.player.position.x, entities.player.position.y, 0, 0.013, 0.013, entities.player.width / 2, entities.player.height / 2, 0, 0)
+	love.graphics.rectangle("fill", entities.player.position.x - x_offset, entities.player.position.y - y_offset, entities.player.width, entities.player.height)
+	love.graphics.draw(entities.player.sprite.sprite, entities.player.position.x - x_offset, entities.player.position.y - y_offset, 0, 0.013, 0.013, entities.player.width / 2, entities.player.height / 2, 0, 0)
 
 	-- Draw enemies
 	for i = #entities.enemies, 1, -1 do
 		local enemy = entities.enemies[i]
-		love.graphics.rectangle("fill", enemy.position.x, enemy.position.y, enemy.width, enemy.height)
+		love.graphics.rectangle("fill", enemy.position.x - x_offset, enemy.position.y - y_offset, enemy.width, enemy.height)
 	end
 
 
