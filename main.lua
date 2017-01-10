@@ -26,9 +26,10 @@ in_focus = false
 function love.load()
 	background = love.graphics.newImage("Assets/background.jpg")
 	love.graphics.setBackgroundColor( 0, 0, 25 )
-	table.insert(entities.blocks, Block:newRock( 150, 250, 20, 20))
-	table.insert(entities.blocks, Block:newRock( 250, 250, 20, 20))
-	table.insert(entities.blocks, Block:newRock( 350, 250, 20, 20))
+	table.insert(entities.blocks, Block:newRock( 150, 450, 20, 20))
+	table.insert(entities.blocks, Block:newRock( 250, 450, 20, 20))
+	table.insert(entities.blocks, Block:newRock( 350, 450, 20, 20))
+	table.insert(entities.blocks, Block:newRock( 0, 480, 800, 600))
 	for i = 1, 400 do
 		table.insert(entities.enemies, Grunt:new(10*i , 5*i))
 	end

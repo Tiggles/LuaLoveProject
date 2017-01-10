@@ -6,7 +6,8 @@ local bump = require("bump/bump")
 time_rising = true
 Player = {}
 use_keyboard = true
-top_down = true
+--top_down = true
+side_ways = true
 
 function Player:new(x, y, height, width, path)
 	newPlayer = {
@@ -14,7 +15,7 @@ function Player:new(x, y, height, width, path)
 		height = height,
 		width = width,
 		sprite = Sprite:new(path),
-		jumpheight = -2,
+		jumpheight = -4,
 		is_jumping = false,
 		velocity = Velocity:newPlayerVelocity(),
 		nextTimeChangeAllowed = love.timer.getTime() + 1
@@ -116,6 +117,9 @@ function Player:handleKeyBoardInput(delta_time, game_speed, entities)
 
 	if self.position.y + self.velocity.speedY * game_speed ~= actualY then
 		self.velocity.speedY = self.velocity.speedY * 0.8
+		if side_ways then
+			is_jumping = false
+		end
 	end
 
 	self.position.x = actualX
