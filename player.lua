@@ -16,8 +16,8 @@ function Player:new(x, y, height, width, path)
 		width = width,
 		sprite = Sprite:new(path),
 		jumpheight = -4,
-		is_jumping = false,
 		can_jump = false,
+		is_jumping = false,
 		velocity = Velocity:newPlayerVelocity(),
 		nextTimeChangeAllowed = love.timer.getTime(),
 		nextJumpAllowed = love.timer.getTime()
@@ -37,6 +37,7 @@ function Player:handleInput(delta_time, game_speed, entities)
 end
 
 function Player:handleKeyBoardInput(delta_time, game_speed, entities)
+
 	if top_down then
 		if love.keyboard.isDown("left") and not love.keyboard.isDown("right") then
 			self.velocity.speedX = self.velocity.speedX - self.velocity.delta * delta_time * game_speed
@@ -74,10 +75,11 @@ function Player:handleKeyBoardInput(delta_time, game_speed, entities)
 			self.velocity.speedX = math.max(self.velocity.speedX - (self.velocity.delta * 2 * delta_time), 0)
 		end
 		-- Jumping
-		if love.keyboard.isDown("space") and not self.is_jumping and self.nextJumpAllowed + 0.3 < love.timer.getTime() then
+		if love.keyboard.isDown("space") and self.can_jump and self.nextJumpAllowed + 0.3 < love.timer.getTime() then
 			self.velocity.speedY = self.jumpheight
 			self.nextJumpAllowed = love.timer.getTime()
 			self.is_jumping = true
+			self.can_jump = false
 		elseif love.keyboard.isDown("space") then
 			self.velocity.speedY = self.velocity.speedY + self.velocity.delta * delta_time * game_speed * 1.8
 		else
@@ -114,27 +116,33 @@ function Player:handleKeyBoardInput(delta_time, game_speed, entities)
 
 	local intendedX = self.position.x + self.velocity.speedX * game_speed
 	local intendedY = self.position.y + self.velocity.speedY * game_speed
-	local jumpX = 0
 
 	local actualX, actualY, cols, len = world:move(player, intendedX, intendedY)
 
 	if intendedX ~= actualX then
 		self.velocity.speedX = self.velocity.speedX * 0.8
 		if side_ways then
-			self.is_jumping = false
 			self.can_jump = true
 		end
+		if intendedX > actualX and self.is_jumping then
+			self.velocity.speedX = -3
+		elseif intendedX < actualX and self.is_jumping then
+			self.velocity.speedX = 3
+		end
 	end
-
+	self.is_jumping = false
 	if intendedY ~= actualY then
 		self.velocity.speedY = self.velocity.speedY * 0.8
 		if side_ways and intendedY > actualY then
-			self.is_jumping = false
 			self.can_jump = true
 		end
 	end
 
-	self.position.x = actualX + jumpX
+	if intendedY == actualY and intendedX == actualX then
+		self.can_jump = false
+	end
+
+	self.position.x = actualX
 	self.position.y = actualY
 
 	explode = false
