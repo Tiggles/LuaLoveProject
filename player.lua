@@ -17,8 +17,10 @@ function Player:new(x, y, height, width, path)
 		sprite = Sprite:new(path),
 		jumpheight = -4,
 		is_jumping = false,
+		can_jump = false,
 		velocity = Velocity:newPlayerVelocity(),
-		nextTimeChangeAllowed = love.timer.getTime() + 1
+		nextTimeChangeAllowed = love.timer.getTime(),
+		nextJumpAllowed = love.timer.getTime()
 	}
 	self.__index = self
 	return setmetatable(newPlayer, self)
@@ -72,9 +74,10 @@ function Player:handleKeyBoardInput(delta_time, game_speed, entities)
 			self.velocity.speedX = math.max(self.velocity.speedX - (self.velocity.delta * 2 * delta_time), 0)
 		end
 		-- Jumping
-		if love.keyboard.isDown("space") and not is_jumping then
+		if love.keyboard.isDown("space") and not self.is_jumping and self.nextJumpAllowed + 0.3 < love.timer.getTime() then
 			self.velocity.speedY = self.jumpheight
-			is_jumping = true
+			self.nextJumpAllowed = love.timer.getTime()
+			self.is_jumping = true
 		elseif love.keyboard.isDown("space") then
 			self.velocity.speedY = self.velocity.speedY + self.velocity.delta * delta_time * game_speed * 1.8
 		else
@@ -109,20 +112,29 @@ function Player:handleKeyBoardInput(delta_time, game_speed, entities)
 		world:add( { name = "block" }, block.position.x, block.position.y, block.width, block.height)
 	end
 
-	local actualX, actualY, cols, len = world:move(player, self.position.x + self.velocity.speedX * game_speed, self.position.y + self.velocity.speedY * game_speed)
+	local intendedX = self.position.x + self.velocity.speedX * game_speed
+	local intendedY = self.position.y + self.velocity.speedY * game_speed
+	local jumpX = 0
 
-	if self.position.x + self.velocity.speedX * game_speed ~= actualX then
+	local actualX, actualY, cols, len = world:move(player, intendedX, intendedY)
+
+	if intendedX ~= actualX then
 		self.velocity.speedX = self.velocity.speedX * 0.8
-	end
-
-	if self.position.y + self.velocity.speedY * game_speed ~= actualY then
-		self.velocity.speedY = self.velocity.speedY * 0.8
 		if side_ways then
-			is_jumping = false
+			self.is_jumping = false
+			self.can_jump = true
 		end
 	end
 
-	self.position.x = actualX
+	if intendedY ~= actualY then
+		self.velocity.speedY = self.velocity.speedY * 0.8
+		if side_ways and intendedY > actualY then
+			self.is_jumping = false
+			self.can_jump = true
+		end
+	end
+
+	self.position.x = actualX + jumpX
 	self.position.y = actualY
 
 	explode = false
@@ -138,6 +150,10 @@ function Player:handleKeyBoardInput(delta_time, game_speed, entities)
 	end
 
 	return explode, time_rising
+end
+
+function Player:handleSidewaysKeyboard()
+
 end
 
 function Player:handleControllerInput(delta_time, game_speed)
