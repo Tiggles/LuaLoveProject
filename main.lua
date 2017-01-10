@@ -98,6 +98,9 @@ function love.update(delta_time)
 	end
 end
 
+memory_usage = 0
+last_memory_check = love.timer.getTime()
+
 function love.draw()
 	-- Draw Room
 	love.graphics.draw(background)
@@ -130,4 +133,9 @@ function love.draw()
 	love.graphics.printf("X speed: " .. entities.player.velocity.speedX, 20, 50, 1000, "left")
 	love.graphics.printf("can jump: " .. tostring(entities.player.can_jump), 20, 60, 1000, "left")
 	love.graphics.printf("is jumping: " .. tostring(entities.player.is_jumping), 20, 70, 1000, "left")
+	love.graphics.printf("Memory actually used (in kB): " .. memory_usage, 20, 80, 1000, "left")
+	if last_memory_check + 1 < love.timer.getTime() then
+		memory_usage = collectgarbage("count")
+		last_memory_check = love.timer.getTime()
+	end
 end
