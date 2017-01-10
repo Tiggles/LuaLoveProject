@@ -9,10 +9,10 @@ function check_collision(self, other)
     local other_top = other.position.y
     local other_bottom = other.position.y + other.height
 
-    if self_right > other_left and
-    self_left < other_right and
-    self_bottom > other_top and
-    self_top < other_bottom then
+    if self_right >= other_left and
+    self_left <= other_right and
+    self_bottom >= other_top and
+    self_top <= other_bottom then
         return true
     else
         return false
