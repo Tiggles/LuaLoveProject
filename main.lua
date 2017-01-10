@@ -105,14 +105,15 @@ function love.draw()
 	-- Draw Room
 	love.graphics.draw(background)
 
-	local x_offset = (entities.player.position.x - (screen.width / 2) - entities.player.width / 2)
-	local y_offset = (entities.player.position.y - screen.height / 2 - entities.player.height / 2)
+	-- camera offset in regards to player
+	local x_offset = (entities.player.position.x - (screen.width / 2) + entities.player.width / 2)
+	local y_offset = (entities.player.position.y - screen.height / 2 + entities.player.height / 2)
 
 	-- Draw blocks
 	for i = #entities.blocks, 1, -1 do
 		local block = entities.blocks[i];
 		--love.graphics.draw(block.image, block.x, block.y, 0, 0, 0, 0, 0, 0, 0)
-		love.graphics.rectangle("fill", block.position.x - x_offset, block.position.y - y_offset, block.width, block.height)
+		drawRect(block, x_offset, y_offset)
 	end
 
 	-- Draw Items
@@ -124,7 +125,7 @@ function love.draw()
 	-- Draw enemies
 	for i = #entities.enemies, 1, -1 do
 		local enemy = entities.enemies[i]
-		love.graphics.rectangle("fill", enemy.position.x - x_offset, enemy.position.y - y_offset, enemy.width, enemy.height)
+		drawRect(enemy, x_offset, y_offset)
 	end
 
 
@@ -141,4 +142,8 @@ function love.draw()
 		memory_usage = collectgarbage("count")
 		last_memory_check = love.timer.getTime()
 	end
+end
+
+function drawRect(entity, x_offset, y_offset)
+	love.graphics.rectangle("fill", entity.position.x - x_offset, entity.position.y - y_offset, entity.width, entity.height)
 end
