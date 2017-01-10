@@ -73,6 +73,7 @@ function love.update(delta_time)
 	if not in_focus then return end
 
 	local explode, time_rising = entities.player:handleInput(delta_time, game_speed, entities)
+	entities.player:handleMovementLogic(entities)
 
 	if explode then
 		for i = #entities.enemies, 1, -1 do

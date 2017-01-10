@@ -30,65 +30,18 @@ end
 
 function Player:handleInput(delta_time, game_speed, entities)
 	if use_keyboard then
-		return self:handleKeyBoardInput(delta_time, game_speed, entities)
+		self:handleKeyBoardInput(delta_time, game_speed, entities)
 	else 
-		return self:handleControllerInput(delta_time, game_speed, entities)
+		self:handleControllerInput(delta_time, game_speed, entities)
 	end
 end
 
 function Player:handleKeyBoardInput(delta_time, game_speed, entities)
 
 	if top_down then
-		if love.keyboard.isDown("left") and not love.keyboard.isDown("right") then
-			self.velocity.speedX = self.velocity.speedX - self.velocity.delta * delta_time * game_speed
-		elseif self.velocity.speedX < 0 then 
-			self.velocity.speedX = math.min(self.velocity.speedX + (self.velocity.delta * 2 * delta_time), 0)
-		end
-		if love.keyboard.isDown("right") and not love.keyboard.isDown("left") then
-			self.velocity.speedX = self.velocity.speedX + self.velocity.delta * delta_time * game_speed
-		elseif self.velocity.speedX > 0 then
-			self.velocity.speedX = math.max(self.velocity.speedX - (self.velocity.delta * 2 * delta_time), 0)
-		end
-
-		--Vertical movement
-		if love.keyboard.isDown("up") and not love.keyboard.isDown("down") then
-			self.velocity.speedY = self.velocity.speedY - self.velocity.delta * delta_time * game_speed
-		elseif self.velocity.speedY < 0 then 
-			self.velocity.speedY = math.min(self.velocity.speedY + (self.velocity.delta * 2 * delta_time), 0)
-		end
-		if love.keyboard.isDown("down") and not love.keyboard.isDown("up") then
-			self.velocity.speedY = self.velocity.speedY + self.velocity.delta * delta_time * game_speed
-		elseif self.velocity.speedY > 0 then 
-			self.velocity.speedY = math.max(self.velocity.speedY - (self.velocity.delta * 2 * delta_time), 0)
-		end
-	end
-
-	if side_ways then
-		if love.keyboard.isDown("left") and not love.keyboard.isDown("right") then
-			self.velocity.speedX = self.velocity.speedX - self.velocity.delta * delta_time * game_speed
-		elseif self.velocity.speedX < 0 then 
-			self.velocity.speedX = math.min(self.velocity.speedX + (self.velocity.delta * 2 * delta_time), 0)
-		end
-		if love.keyboard.isDown("right") and not love.keyboard.isDown("left") then
-			self.velocity.speedX = self.velocity.speedX + self.velocity.delta * delta_time * game_speed
-		elseif self.velocity.speedX > 0 then
-			self.velocity.speedX = math.max(self.velocity.speedX - (self.velocity.delta * 2 * delta_time), 0)
-		end
-		-- Jumping
-		if love.keyboard.isDown("space") and self.can_jump and self.nextJumpAllowed + 0.3 < love.timer.getTime() then
-			self.velocity.speedY = self.jumpheight
-			self.nextJumpAllowed = love.timer.getTime()
-			self.is_jumping = true
-			self.can_jump = false
-		elseif love.keyboard.isDown("space") then
-			self.velocity.speedY = self.velocity.speedY + self.velocity.delta * delta_time * game_speed * 1.8
-		else
-			self.velocity.speedY = self.velocity.speedY + self.velocity.delta * delta_time * game_speed * 2
-		end
-		-- Attacking
-		if love.keyboard.isDown("w") then
-
-		end
+		handleTopdownKeyboard(delta_time, game_speed)
+	elseif side_ways then
+		self:handleSidewaysKeyboard(delta_time, game_speed)
 	end
 
 	-- Other
@@ -100,6 +53,22 @@ function Player:handleKeyBoardInput(delta_time, game_speed, entities)
 		love.event.quit("restart")
 	end
 
+	explode = false
+	time_change = false
+
+	if love.keyboard.isDown("e") then
+		explode = true
+	end
+
+	if love.keyboard.isDown("q") and love.timer.getTime() > self.nextTimeChangeAllowed then
+		time_rising = not time_rising
+		nextTimeChangeAllowed = love.timer.getTime() + 1
+	end
+
+	return explode, time_rising
+end
+
+function Player:handleMovementLogic(entities)
 	self.velocity.speedX = math.max(math.min(self.velocity.speedX, self.velocity.max), self.velocity.min)
 	self.velocity.speedY = math.max(math.min(self.velocity.speedY, self.velocity.max), self.velocity.min)
 
@@ -144,24 +113,58 @@ function Player:handleKeyBoardInput(delta_time, game_speed, entities)
 
 	self.position.x = actualX
 	self.position.y = actualY
-
-	explode = false
-	time_change = false
-
-	if love.keyboard.isDown("e") then
-		explode = true
-	end
-
-	if love.keyboard.isDown("q") and love.timer.getTime() > self.nextTimeChangeAllowed then
-		time_rising = not time_rising
-		nextTimeChangeAllowed = love.timer.getTime() + 1
-	end
-
-	return explode, time_rising
 end
 
-function Player:handleSidewaysKeyboard()
+function Player:handleTopdownKeyboard(delta_time, game_speed)
+	if love.keyboard.isDown("left") and not love.keyboard.isDown("right") then
+		self.velocity.speedX = self.velocity.speedX - self.velocity.delta * delta_time * game_speed
+	elseif self.velocity.speedX < 0 then 
+		self.velocity.speedX = math.min(self.velocity.speedX + (self.velocity.delta * 2 * delta_time), 0)
+	end
+	if love.keyboard.isDown("right") and not love.keyboard.isDown("left") then
+		self.velocity.speedX = self.velocity.speedX + self.velocity.delta * delta_time * game_speed
+	elseif self.velocity.speedX > 0 then
+		self.velocity.speedX = math.max(self.velocity.speedX - (self.velocity.delta * 2 * delta_time), 0)
+	end
+	--Vertical movement
+	if love.keyboard.isDown("up") and not love.keyboard.isDown("down") then
+		self.velocity.speedY = self.velocity.speedY - self.velocity.delta * delta_time * game_speed
+	elseif self.velocity.speedY < 0 then 
+		self.velocity.speedY = math.min(self.velocity.speedY + (self.velocity.delta * 2 * delta_time), 0)
+	end
+	if love.keyboard.isDown("down") and not love.keyboard.isDown("up") then
+		self.velocity.speedY = self.velocity.speedY + self.velocity.delta * delta_time * game_speed
+	elseif self.velocity.speedY > 0 then 
+		self.velocity.speedY = math.max(self.velocity.speedY - (self.velocity.delta * 2 * delta_time), 0)
+	end
+end
 
+function Player:handleSidewaysKeyboard(delta_time, game_speed)
+	if love.keyboard.isDown("left") and not love.keyboard.isDown("right") then
+		self.velocity.speedX = self.velocity.speedX - self.velocity.delta * delta_time * game_speed
+	elseif self.velocity.speedX < 0 then 
+		self.velocity.speedX = math.min(self.velocity.speedX + (self.velocity.delta * 2 * delta_time), 0)
+	end
+	if love.keyboard.isDown("right") and not love.keyboard.isDown("left") then
+		self.velocity.speedX = self.velocity.speedX + self.velocity.delta * delta_time * game_speed
+	elseif self.velocity.speedX > 0 then
+		self.velocity.speedX = math.max(self.velocity.speedX - (self.velocity.delta * 2 * delta_time), 0)
+	end
+	-- Jumping
+	if love.keyboard.isDown("space") and self.can_jump and self.nextJumpAllowed + 0.3 < love.timer.getTime() then
+		self.velocity.speedY = self.jumpheight
+		self.nextJumpAllowed = love.timer.getTime()
+		self.is_jumping = true
+		self.can_jump = false
+	elseif love.keyboard.isDown("space") then
+		self.velocity.speedY = self.velocity.speedY + self.velocity.delta * delta_time * game_speed * 1.8
+	else
+		self.velocity.speedY = self.velocity.speedY + self.velocity.delta * delta_time * game_speed * 2
+	end
+	-- Attacking
+	if love.keyboard.isDown("w") then
+
+	end
 end
 
 function Player:handleControllerInput(delta_time, game_speed)
