@@ -5,9 +5,10 @@ local bump = require("bump/bump")
 
 time_rising = true
 Player = {}
-use_keyboard = true
---top_down = true
+use_keyboard = 1
+use_controller = 2
 side_ways = true
+use_mouse = 3
 
 function Player:new(x, y, height, width, path)
 	newPlayer = {
@@ -26,20 +27,22 @@ function Player:new(x, y, height, width, path)
 	return setmetatable(newPlayer, self)
 end
 
-
-
-function Player:handleInput(delta_time, game_speed, entities)
-	if use_keyboard then
-		self:handleKeyBoardInput(delta_time, game_speed, entities)
-	else 
-		self:handleControllerInput(delta_time, game_speed, entities)
-	end
+function Player:handleInput(delta_time, game_speed, control_type)
+	if use_keyboard == control_type then
+		print("hit keyboard")
+		return self:handleKeyBoardInput(delta_time, game_speed)
+	elseif use_controller == control_type then
+		return self:handleControllerInput(delta_time, game_speed)
+	elseif use_mouse == control_type then
+		print("hit")
+		return self:handleIsometricMouseControls(delta_time, game_speed)
+	end 
 end
 
-function Player:handleKeyBoardInput(delta_time, game_speed, entities)
+function Player:handleKeyBoardInput(delta_time, game_speed)
 
 	if top_down then
-		handleTopdownKeyboard(delta_time, game_speed)
+		self:handleTopdownKeyboard(delta_time, game_speed)
 	elseif side_ways then
 		self:handleSidewaysKeyboard(delta_time, game_speed)
 	end
@@ -113,6 +116,12 @@ function Player:handleMovementLogic(entities)
 
 	self.position.x = actualX
 	self.position.y = actualY
+end
+
+function Player:handleIsometricMouseControls(delta_time, game_speed)
+	self.position.x = love.mouse.getX()
+	self.position.y = love.mouse.getY()
+	return love.mouse.getX(), love.mouse.getY(), love.mouse.isDown(1)
 end
 
 function Player:handleTopdownKeyboard(delta_time, game_speed)

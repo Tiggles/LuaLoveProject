@@ -8,6 +8,7 @@ return {
 
 	worldConstants = {
 		sideways = 0,
-		isometric = 1
+		isometric = 1,
+		top_down = 2
 	}
 }

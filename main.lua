@@ -9,6 +9,8 @@ require "helper_functions"
 screen = { width = 800, height = 600, flags = nil}
 love.window.setMode( screen.width, screen.height, { resizable = false, vsync = true, minwidth = 800, minheight=600, fullscreen=false })
 love.window.setTitle( "Generic Planet Mover and Attractor" )
+keyboard_or_controller = false
+draw_with_offset = false
 
 -- Value Initialization
 
@@ -60,6 +62,9 @@ function love.load()
 	for i = 1, 400 do
 		table.insert(entities.enemies, Grunt:new(10*i , 5*i))
 	end
+
+	next_block_insert = love.timer.getTime()
+	next_rendering_switch = love.timer.getTime()
 end
 
 function love.focus(focus)
@@ -72,7 +77,24 @@ function love.update(delta_time)
 
 	if not in_focus then return end
 
-	local explode, time_rising = entities.player:handleInput(delta_time, game_speed, entities)
+	if keyboard_or_controller then
+		local explode, time_rising = entities.player:handleInput(delta_time, game_speed, 1)
+	else 
+		mouse_x, mouse_y, left_mouse_button_pressed = entities.player:handleInput(delta_time, game_speed, 3)
+		entities.player.position.x = mouse_x
+		entities.player.position.y = mouse_y
+	end
+
+	if left_mouse_button_pressed and next_block_insert < love.timer.getTime() then
+		for i=1, #entities.blocks do
+			if check_collision(entities.blocks[i], { position = { x = mouse_x, y = mouse_y }, width = 20, height = 20 }) then
+				break;
+			end
+		end
+		table.insert(entities.blocks, Block:newRock(mouse_x, mouse_y, 20, 20))
+		next_block_insert = love.timer.getTime() + 1
+	end
+
 	entities.player:handleMovementLogic(entities)
 
 	if explode then
@@ -102,18 +124,54 @@ memory_usage = 0
 last_memory_check = love.timer.getTime()
 
 function love.draw()
+	entities_drawn = 0
 	-- Draw Room
 	love.graphics.draw(background)
 
+	if draw_with_offset then
+		render_screen_with_offset()
+	else
+		render_screen_without_offset()
+	end
+
+	-- HUD
+	love.graphics.printf("FPS: " .. love.timer.getFPS(), 20, 10, 1000, "left" )
+	love.graphics.printf("Particles: " .. #entities.enemies, 20, 20, 1000, "left" )
+	love.graphics.printf("Gamespeed: " .. game_speed, 20, 30, 1000, "left" )
+	love.graphics.printf("Y speed: " .. entities.player.velocity.speedY, 20, 40, 1000, "left")
+	love.graphics.printf("X speed: " .. entities.player.velocity.speedX, 20, 50, 1000, "left")
+	love.graphics.printf("can jump: " .. tostring(entities.player.can_jump), 20, 60, 1000, "left")
+	love.graphics.printf("is jumping: " .. tostring(entities.player.is_jumping), 20, 70, 1000, "left")
+	love.graphics.printf("Memory actually used (in kB): " .. memory_usage, 20, 80, 1000, "left")
+	love.graphics.printf("Entities drawn " .. entities_drawn, 20, 90, 1000, "left")
+	if last_memory_check + 1 < love.timer.getTime() then
+		memory_usage = collectgarbage("count")
+		last_memory_check = love.timer.getTime()
+	end
+end
+
+function render_screen_with_offset()
 	-- camera offset in regards to player
 	local x_offset = (entities.player.position.x - (screen.width / 2) + entities.player.width / 2)
-	local y_offset = (entities.player.position.y - screen.height / 2 + entities.player.height / 2)
+	local y_offset = (entities.player.position.y - (screen.height / 2) + entities.player.height / 2)
+
+	local camera_rectangle = { 
+		position =  {
+			x = entities.player.position.x - screen.width / 2,
+			y = entities.player.position.y - screen.height / 2
+		},
+		width = screen.width,
+		height = screen.height
+	}
 
 	-- Draw blocks
 	for i = #entities.blocks, 1, -1 do
 		local block = entities.blocks[i];
 		--love.graphics.draw(block.image, block.x, block.y, 0, 0, 0, 0, 0, 0, 0)
-		drawRect(block, x_offset, y_offset)
+		if check_collision(camera_rectangle, camera_rectangle) then
+			drawRectWithOffset(block, x_offset, y_offset)
+			entities_drawn = entities_drawn + 1
+		end
 	end
 
 	-- Draw Items
@@ -125,25 +183,48 @@ function love.draw()
 	-- Draw enemies
 	for i = #entities.enemies, 1, -1 do
 		local enemy = entities.enemies[i]
-		drawRect(enemy, x_offset, y_offset)
+		if check_collision(enemy, camera_rectangle) then
+			drawRectWithOffset(enemy, x_offset, y_offset)
+			entities_drawn = entities_drawn + 1
+		end
 	end
 
-
-	-- HUD
-	love.graphics.printf("FPS: " .. love.timer.getFPS(), 20, 10, 1000, "left" )
-	love.graphics.printf("Particles: " .. #entities.enemies, 20, 20, 1000, "left" )
-	love.graphics.printf("Gamespeed: " .. game_speed, 20, 30, 1000, "left" )
-	love.graphics.printf("Y speed: " .. entities.player.velocity.speedY, 20, 40, 1000, "left")
-	love.graphics.printf("X speed: " .. entities.player.velocity.speedX, 20, 50, 1000, "left")
-	love.graphics.printf("can jump: " .. tostring(entities.player.can_jump), 20, 60, 1000, "left")
-	love.graphics.printf("is jumping: " .. tostring(entities.player.is_jumping), 20, 70, 1000, "left")
-	love.graphics.printf("Memory actually used (in kB): " .. memory_usage, 20, 80, 1000, "left")
-	if last_memory_check + 1 < love.timer.getTime() then
-		memory_usage = collectgarbage("count")
-		last_memory_check = love.timer.getTime()
+	if love.mouse.isDown(2) and next_rendering_switch < love.timer.getTime() then
+		draw_with_offset = not draw_with_offset
+		next_rendering_switch = love.timer.getTime() + 1
+		keyboard_or_controller = false
 	end
 end
 
-function drawRect(entity, x_offset, y_offset)
+function render_screen_without_offset()
+	-- Draw blocks
+	for i = #entities.blocks, 1, -1 do
+		local block = entities.blocks[i];
+		--love.graphics.draw(block.image, block.x, block.y, 0, 0, 0, 0, 0, 0, 0)
+		drawRectWithoutOffset(block)
+		entities_drawn = entities_drawn + 1
+	end
+
+	-- Draw Items
+
+	-- Draw enemies
+	for i = #entities.enemies, 1, -1 do
+		local enemy = entities.enemies[i]
+		drawRectWithoutOffset(enemy)
+		entities_drawn = entities_drawn + 1
+	end
+
+	if love.mouse.isDown(2) and next_rendering_switch < love.timer.getTime() then
+		draw_with_offset = true
+		next_rendering_switch = love.timer.getTime() + 1
+		keyboard_or_controller = true
+	end
+end
+
+function drawRectWithOffset(entity, x_offset, y_offset)
 	love.graphics.rectangle("fill", entity.position.x - x_offset, entity.position.y - y_offset, entity.width, entity.height)
+end
+
+function drawRectWithoutOffset(entity)
+	love.graphics.rectangle("fill", entity.position.x, entity.position.y, entity.width, entity.height)
 end
