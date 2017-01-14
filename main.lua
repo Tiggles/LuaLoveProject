@@ -163,6 +163,12 @@ function love.draw()
 	love.graphics.printf("is jumping: " .. tostring(entities.player.is_jumping), 20, 70, 1000, "left")
 	love.graphics.printf("Memory actually used (in kB): " .. memory_usage, 20, 80, 1000, "left")
 	love.graphics.printf("Entities drawn " .. entities_drawn, 20, 90, 1000, "left")
+	if keyboard_or_controller then
+		love.graphics.printf("Arrow keys for movement,", screen.width - 20, 90, 1000, "right")
+	else
+		love.graphics.printf("Left button to add, right to remove,", screen.width - 250, 10, 1000, "left")
+	end
+	love.graphics.printf("'i' to swap state", screen.width - 250, 20, 1000, "left")
 	if last_memory_check + 1 < love.timer.getTime() then
 		memory_usage = collectgarbage("count")
 		last_memory_check = love.timer.getTime()
@@ -208,7 +214,7 @@ function render_screen_with_offset()
 		end
 	end
 
-	if love.mouse.isDown(2) and next_rendering_switch < love.timer.getTime() then
+	if love.keyboard.isDown("i") and next_rendering_switch < love.timer.getTime() then
 		draw_with_offset = not draw_with_offset
 		next_rendering_switch = love.timer.getTime() + 1
 		keyboard_or_controller = false
