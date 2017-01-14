@@ -19,7 +19,7 @@ horisontal_draw_scale = 1
 local constants = require "constants"
 
 entities = {
-	player = Player:new(20, 20, 20, 20, "Assets/BILD1321.png"),
+	player = Player:new(20, 20, 20, 20, "Assets/BILD1321.png", 0.013, 0.013),
 	enemies = {},
 	blocks = {}
 }
@@ -28,7 +28,7 @@ game_speed = 1
 in_focus = false
 
 function love.load()
-	background = love.graphics.newImage("Assets/background.jpg")
+	--background = love.graphics.newImage("Assets/background.jpg")
 	love.graphics.setBackgroundColor( 0, 0, 25 )
 	--boundaries
 	table.insert(entities.blocks, Block:newRock( -1, 0, 1, screen.height))
@@ -80,6 +80,7 @@ end
 
 function love.update(delta_time)
 
+	local mouse_x, mouse_y, left_mouse_button_pressed, right_mouse_button_pressed
 	game_speed = update_gameSpeed(game_speed, delta_time, time_rising)
 
 	if not in_focus then return end
@@ -92,26 +93,7 @@ function love.update(delta_time)
 		entities.player.position.y = mouse_y
 	end
 
-	if left_mouse_button_pressed and next_block_interaction < love.timer.getTime() then
-		local occupied_space = false
-		for i = 1, #entities.blocks do
-			if check_collision(entities.blocks[i], { position = { x = mouse_x - (mouse_x % 10), y = mouse_y - (mouse_y % 10) }, width = 20, height = 20 }) then
-				occupied_space = true
-			end
-		end
-		if not occupied_space then
-			table.insert(entities.blocks, Block:newRock(mouse_x - (mouse_x % 10), mouse_y - (mouse_y % 10), 20, 20))
-			next_block_interaction = love.timer.getTime() + .1
-		end
-	end
-
-	if right_mouse_button_pressed and next_block_interaction < love.timer.getTime() then
-		for i = #entities.blocks, 1, -1 do
-			if check_collision(entities.blocks[i], { position = { x = mouse_x - (mouse_x % 10), y = mouse_y - (mouse_y % 10) }, width = 1, height = 1 }) then
-				table.remove(entities.blocks, i)
-			end
-		end
-	end
+	handle_mouse_editor(mouse_x, mouse_y, left_mouse_button_pressed, right_mouse_button_pressed)
 
 	entities.player:handleMovementLogic(entities)
 
@@ -144,7 +126,7 @@ last_memory_check = love.timer.getTime()
 function love.draw()
 	entities_drawn = 0
 	-- Draw Room
-	love.graphics.draw(background)
+	--love.graphics.draw(background)
 
 	if draw_with_offset then
 		render_screen_with_offset()
@@ -202,7 +184,7 @@ function render_screen_with_offset()
 
 	-- Draw player
 	drawRectWithOffset(entities.player, x_offset, y_offset)
-	love.graphics.draw(entities.player.sprite.sprite, entities.player.position.x - x_offset, entities.player.position.y - y_offset, 0, 0.013, 0.013, entities.player.width / 2, entities.player.height / 2, 0, 0)
+	draw_sprite_with_offset(entities.player, x_offset, y_offset)
 
 	-- Draw enemies
 	for i = #entities.enemies, 1, -1 do
@@ -243,6 +225,33 @@ function render_screen_without_offset()
 		next_rendering_switch = love.timer.getTime() + 1
 		keyboard_or_controller = true
 	end
+end
+
+function handle_mouse_editor(x, y, left, right)
+	if left and next_block_interaction < love.timer.getTime() then
+		local occupied_space = false
+		for i = 1, #entities.blocks do
+			if check_collision(entities.blocks[i], { position = { x = (x - (x % 10)) / horisontal_draw_scale, y = (y - (y % 10)) / vertical_draw_scale }, width = 20, height = 20 }) then
+				occupied_space = true
+			end
+		end
+		if not occupied_space then
+			table.insert(entities.blocks, Block:newRock((x - (x % 10)) / horisontal_draw_scale, (y - (y % 10)) / vertical_draw_scale, 20, 20))
+			next_block_interaction = love.timer.getTime() + .1
+		end
+	end
+
+	if right and next_block_interaction < love.timer.getTime() then
+		for i = #entities.blocks, 1, -1 do
+			if check_collision(entities.blocks[i], { position = { x = (x - (x % 10)) / horisontal_draw_scale, y = (y - (y % 10)) / vertical_draw_scale }, width = 1, height = 1 }) then
+				table.remove(entities.blocks, i)
+			end
+		end
+	end
+end
+
+function draw_sprite_with_offset(entity, x_offset, y_offset)
+	love.graphics.draw(entity.sprite.sprite, (entities.player.position.x - x_offset) * horisontal_draw_scale, (entities.player.position.y - y_offset) * vertical_draw_scale, 0, 0.013, 0.013, entity.width / 2, entity.height / 2, 0, 0)
 end
 
 function drawRectWithOffset(entity, x_offset, y_offset)

@@ -7,15 +7,22 @@ time_rising = true
 Player = {}
 use_keyboard = 1
 use_controller = 2
-side_ways = true
 use_mouse = 3
+top_down = 1
+side_ways = 2
+isometric = 3
+game_view_state = 2
 
-function Player:new(x, y, height, width, path)
+function set_game_view_state(state)
+	game_view_state = state
+end
+
+function Player:new(x, y, height, width, path, scale_x, scale_y)
 	newPlayer = {
 		position = Position:new(x, y),
 		height = height,
 		width = width,
-		sprite = Sprite:new(path),
+		sprite = Sprite:new(path, scale_x, scale_y),
 		jumpheight = -4,
 		can_jump = false,
 		is_jumping = false,
@@ -38,11 +45,12 @@ function Player:handleInput(delta_time, game_speed, control_type)
 end
 
 function Player:handleKeyBoardInput(delta_time, game_speed)
-
-	if top_down then
+	if top_down == game_view_state then
 		self:handleTopdownKeyboard(delta_time, game_speed)
-	elseif side_ways then
+	elseif side_ways == game_view_state then
 		self:handleSidewaysKeyboard(delta_time, game_speed)
+	elseif isometric == game_view_state then
+
 	end
 
 	-- Other
@@ -123,6 +131,7 @@ function Player:handleIsometricMouseControls(delta_time, game_speed)
 end
 
 function Player:handleTopdownKeyboard(delta_time, game_speed)
+	print("top_down")
 	if love.keyboard.isDown("left") and not love.keyboard.isDown("right") then
 		self.velocity.speedX = self.velocity.speedX - self.velocity.delta * delta_time * game_speed
 	elseif self.velocity.speedX < 0 then 
