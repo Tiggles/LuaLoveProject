@@ -74,8 +74,8 @@ function love.focus(focus)
 end
 
 function love.resize(width, height)
-	screen.width = width
-	screen.height = height
+	horisontal_draw_scale = width / screen.width
+	vertical_draw_scale = height / screen.height
 end
 
 function love.update(delta_time)
@@ -96,7 +96,6 @@ function love.update(delta_time)
 		local occupied_space = false
 		for i = 1, #entities.blocks do
 			if check_collision(entities.blocks[i], { position = { x = mouse_x - (mouse_x % 10), y = mouse_y - (mouse_y % 10) }, width = 20, height = 20 }) then
-				print("collision")
 				occupied_space = true
 			end
 		end
@@ -247,9 +246,9 @@ function render_screen_without_offset()
 end
 
 function drawRectWithOffset(entity, x_offset, y_offset)
-	love.graphics.rectangle("fill", entity.position.x - x_offset, entity.position.y - y_offset, entity.width * horisontal_draw_scale, entity.height * vertical_draw_scale)
+	love.graphics.rectangle("fill", (entity.position.x - x_offset) * horisontal_draw_scale, vertical_draw_scale * (entity.position.y - y_offset), entity.width * horisontal_draw_scale, entity.height * vertical_draw_scale)
 end
 
 function drawRectWithoutOffset(entity)
-	love.graphics.rectangle("fill", entity.position.x, entity.position.y, entity.width * horisontal_draw_scale, entity.height * vertical_draw_scale)
+	love.graphics.rectangle("fill", entity.position.x * horisontal_draw_scale, vertical_draw_scale * entity.position.y, entity.width * horisontal_draw_scale, entity.height * vertical_draw_scale)
 end
