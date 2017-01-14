@@ -29,12 +29,10 @@ end
 
 function Player:handleInput(delta_time, game_speed, control_type)
 	if use_keyboard == control_type then
-		print("hit keyboard")
 		return self:handleKeyBoardInput(delta_time, game_speed)
 	elseif use_controller == control_type then
 		return self:handleControllerInput(delta_time, game_speed)
 	elseif use_mouse == control_type then
-		print("hit")
 		return self:handleIsometricMouseControls(delta_time, game_speed)
 	end 
 end
@@ -121,7 +119,7 @@ end
 function Player:handleIsometricMouseControls(delta_time, game_speed)
 	self.position.x = love.mouse.getX()
 	self.position.y = love.mouse.getY()
-	return love.mouse.getX(), love.mouse.getY(), love.mouse.isDown(1)
+	return love.mouse.getX(), love.mouse.getY(), love.mouse.isDown(1), love.mouse.isDown(2)
 end
 
 function Player:handleTopdownKeyboard(delta_time, game_speed)

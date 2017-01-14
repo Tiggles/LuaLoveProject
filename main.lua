@@ -7,10 +7,12 @@ require "helper_functions"
 -- Window Initialization
 
 screen = { width = 800, height = 600, flags = nil}
-love.window.setMode( screen.width, screen.height, { resizable = false, vsync = true, minwidth = 800, minheight=600, fullscreen=false })
+love.window.setMode( screen.width, screen.height, { resizable = true, vsync = true, minwidth = 800, minheight=600, fullscreen=false })
 love.window.setTitle( "Generic Planet Mover and Attractor" )
 keyboard_or_controller = false
 draw_with_offset = false
+vertical_draw_scale = 1
+horisontal_draw_scale = 1
 
 -- Value Initialization
 
@@ -31,7 +33,8 @@ function love.load()
 	--boundaries
 	table.insert(entities.blocks, Block:newRock( -1, 0, 1, screen.height))
 	table.insert(entities.blocks, Block:newRock( 0, -1, screen.width, 1))
-	table.insert(entities.blocks, Block:newRock( screen.width, 0, 1, screen.height))
+	table.insert(entities.blocks, Block:newRock( 800, 0, 1, 600))
+	table.insert(entities.blocks, Block:newRock( 0, 600, 800, 1))
 	-- highest level
 
 	table.insert(entities.blocks, Block:newRock( 150, 280, 20, 20))
@@ -57,18 +60,22 @@ function love.load()
 	table.insert(entities.blocks, Block:newRock( 450, 420, 20, 20))
 	table.insert(entities.blocks, Block:newRock( 550, 420, 20, 20))
 	table.insert(entities.blocks, Block:newRock( 650, 420, 20, 20))
-	-- bottom
-	table.insert(entities.blocks, Block:newRock( 0, 480, 800, 600))
+
 	for i = 1, 400 do
 		table.insert(entities.enemies, Grunt:new(10*i , 5*i))
 	end
 
-	next_block_insert = love.timer.getTime()
+	next_block_interaction = love.timer.getTime()
 	next_rendering_switch = love.timer.getTime()
 end
 
 function love.focus(focus)
 	in_focus = focus
+end
+
+function love.resize(width, height)
+	screen.width = width
+	screen.height = height
 end
 
 function love.update(delta_time)
@@ -80,19 +87,31 @@ function love.update(delta_time)
 	if keyboard_or_controller then
 		local explode, time_rising = entities.player:handleInput(delta_time, game_speed, 1)
 	else 
-		mouse_x, mouse_y, left_mouse_button_pressed = entities.player:handleInput(delta_time, game_speed, 3)
+		mouse_x, mouse_y, left_mouse_button_pressed, right_mouse_button_pressed = entities.player:handleInput(delta_time, game_speed, 3)
 		entities.player.position.x = mouse_x
 		entities.player.position.y = mouse_y
 	end
 
-	if left_mouse_button_pressed and next_block_insert < love.timer.getTime() then
-		for i=1, #entities.blocks do
-			if check_collision(entities.blocks[i], { position = { x = mouse_x, y = mouse_y }, width = 20, height = 20 }) then
-				break;
+	if left_mouse_button_pressed and next_block_interaction < love.timer.getTime() then
+		local occupied_space = false
+		for i = 1, #entities.blocks do
+			if check_collision(entities.blocks[i], { position = { x = mouse_x - (mouse_x % 10), y = mouse_y - (mouse_y % 10) }, width = 20, height = 20 }) then
+				print("collision")
+				occupied_space = true
 			end
 		end
-		table.insert(entities.blocks, Block:newRock(mouse_x, mouse_y, 20, 20))
-		next_block_insert = love.timer.getTime() + 1
+		if not occupied_space then
+			table.insert(entities.blocks, Block:newRock(mouse_x - (mouse_x % 10), mouse_y - (mouse_y % 10), 20, 20))
+			next_block_interaction = love.timer.getTime() + .1
+		end
+	end
+
+	if right_mouse_button_pressed and next_block_interaction < love.timer.getTime() then
+		for i = #entities.blocks, 1, -1 do
+			if check_collision(entities.blocks[i], { position = { x = mouse_x - (mouse_x % 10), y = mouse_y - (mouse_y % 10) }, width = 1, height = 1 }) then
+				table.remove(entities.blocks, i)
+			end
+		end
 	end
 
 	entities.player:handleMovementLogic(entities)
@@ -177,7 +196,7 @@ function render_screen_with_offset()
 	-- Draw Items
 
 	-- Draw player
-	love.graphics.rectangle("fill", entities.player.position.x - x_offset, entities.player.position.y - y_offset, entities.player.width, entities.player.height)
+	drawRectWithOffset(entities.player, x_offset, y_offset)
 	love.graphics.draw(entities.player.sprite.sprite, entities.player.position.x - x_offset, entities.player.position.y - y_offset, 0, 0.013, 0.013, entities.player.width / 2, entities.player.height / 2, 0, 0)
 
 	-- Draw enemies
@@ -214,7 +233,7 @@ function render_screen_without_offset()
 		entities_drawn = entities_drawn + 1
 	end
 
-	if love.mouse.isDown(2) and next_rendering_switch < love.timer.getTime() then
+	if love.keyboard.isDown("i") and next_rendering_switch < love.timer.getTime() then
 		draw_with_offset = true
 		next_rendering_switch = love.timer.getTime() + 1
 		keyboard_or_controller = true
@@ -222,9 +241,9 @@ function render_screen_without_offset()
 end
 
 function drawRectWithOffset(entity, x_offset, y_offset)
-	love.graphics.rectangle("fill", entity.position.x - x_offset, entity.position.y - y_offset, entity.width, entity.height)
+	love.graphics.rectangle("fill", entity.position.x - x_offset, entity.position.y - y_offset, entity.width * horisontal_draw_scale, entity.height * vertical_draw_scale)
 end
 
 function drawRectWithoutOffset(entity)
-	love.graphics.rectangle("fill", entity.position.x, entity.position.y, entity.width, entity.height)
+	love.graphics.rectangle("fill", entity.position.x, entity.position.y, entity.width * horisontal_draw_scale, entity.height * vertical_draw_scale)
 end
