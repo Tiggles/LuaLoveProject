@@ -3,11 +3,12 @@ require "enemies"
 require "player"
 require "items"
 require "helper_functions"
+local anim8 = require "anim8/anim8"
 
 -- Window Initialization
 
-screen = { width = 800, height = 600, flags = nil}
-love.window.setMode( screen.width, screen.height, { resizable = true, vsync = true, minwidth = 800, minheight=600, fullscreen=false })
+screen = { width = 800, height = 480, flags = nil}
+love.window.setMode( screen.width, screen.height, { resizable = true, vsync = true, minwidth = 800, minheight=480 , fullscreen=false })
 love.window.setTitle( "Generic Planet Mover and Attractor" )
 keyboard_or_controller = false
 draw_with_offset = false
@@ -33,8 +34,8 @@ function love.load()
 	--boundaries
 	table.insert(entities.blocks, Block:newRock( -1, 0, 1, screen.height))
 	table.insert(entities.blocks, Block:newRock( 0, -1, screen.width, 1))
-	table.insert(entities.blocks, Block:newRock( 800, 0, 1, 600))
-	table.insert(entities.blocks, Block:newRock( 0, 600, 800, 1))
+	table.insert(entities.blocks, Block:newRock( screen.width, 0, 1, screen.height))
+	table.insert(entities.blocks, Block:newRock( 0, screen.height, screen.width, 1))
 	-- highest level
 
 	table.insert(entities.blocks, Block:newRock( 150, 280, 20, 20))
@@ -65,6 +66,10 @@ function love.load()
 		table.insert(entities.enemies, Grunt:new(10*i , 5*i))
 	end
 
+	cursor_image = love.graphics.newImage("Assets/Cursor.png")
+	local g = anim8.newGrid(20, 20, cursor_image:getWidth(), cursor_image:getHeight())
+	cursor_animation = anim8.newAnimation(g('1-2',1), 0.5)
+
 	next_block_interaction = love.timer.getTime()
 	next_rendering_switch = love.timer.getTime()
 end
@@ -82,6 +87,7 @@ function love.update(delta_time)
 
 	local mouse_x, mouse_y, left_mouse_button_pressed, right_mouse_button_pressed
 	game_speed = update_gameSpeed(game_speed, delta_time, time_rising)
+
 
 	if not in_focus then return end
 
@@ -118,6 +124,8 @@ function love.update(delta_time)
 		--	table.remove(entities.enemies, i)
 		--end
 	end
+
+	cursor_animation:update(delta_time)
 end
 
 memory_usage = 0
@@ -174,7 +182,7 @@ function render_screen_with_offset()
 	for i = #entities.blocks, 1, -1 do
 		local block = entities.blocks[i];
 		--love.graphics.draw(block.image, block.x, block.y, 0, 0, 0, 0, 0, 0, 0)
-		if check_collision(camera_rectangle, camera_rectangle) then
+		if check_collision(block, camera_rectangle) then
 			drawRectWithOffset(block, x_offset, y_offset)
 			entities_drawn = entities_drawn + 1
 		end
@@ -210,6 +218,13 @@ function render_screen_without_offset()
 		drawRectWithoutOffset(block)
 		entities_drawn = entities_drawn + 1
 	end
+
+	-- Draw cursor
+
+	local x, y = love.mouse.getX(), love.mouse.getY()
+	x = x - (x % 10)
+	y = y - (y % 10)
+	cursor_animation:draw(cursor_image, x * horisontal_draw_scale, y * vertical_draw_scale, 0, horisontal_draw_scale, vertical_draw_scale)
 
 	-- Draw Items
 
