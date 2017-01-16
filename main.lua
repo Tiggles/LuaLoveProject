@@ -89,8 +89,8 @@ function love.update(delta_time)
 		local explode, time_rising = entities.player:handleInput(delta_time, game_speed, 1)
 	else 
 		mouse_x, mouse_y, left_mouse_button_pressed, right_mouse_button_pressed = entities.player:handleInput(delta_time, game_speed, 3)
-		entities.player.position.x = mouse_x
-		entities.player.position.y = mouse_y
+		entities.player.position.x = mouse_x / horisontal_draw_scale
+		entities.player.position.y = mouse_y / vertical_draw_scale
 	end
 
 	handle_mouse_editor(mouse_x, mouse_y, left_mouse_button_pressed, right_mouse_button_pressed)
