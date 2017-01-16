@@ -28,8 +28,14 @@ entities = {
 game_speed = 1
 in_focus = false
 
+function hide_cursor()
+	cursor = love.mouse.newCursor("Assets/empty_cursor.png")
+	love.mouse.setCursor(cursor)
+end
+
 function love.load()
 	--background = love.graphics.newImage("Assets/background.jpg")
+	hide_cursor()
 	love.graphics.setBackgroundColor( 0, 0, 25 )
 	--boundaries
 	table.insert(entities.blocks, Block:newRock( -1, 0, 1, screen.height))
@@ -224,7 +230,7 @@ function render_screen_without_offset()
 	local x, y = love.mouse.getX(), love.mouse.getY()
 	x = x - (x % 10)
 	y = y - (y % 10)
-	cursor_animation:draw(cursor_image, x * horisontal_draw_scale, y * vertical_draw_scale, 0, horisontal_draw_scale, vertical_draw_scale)
+	cursor_animation:draw(cursor_image, x, y, 0, horisontal_draw_scale, vertical_draw_scale)
 
 	-- Draw Items
 
