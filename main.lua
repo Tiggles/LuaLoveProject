@@ -22,7 +22,8 @@ local constants = require "constants"
 entities = {
 	player = Player:new(20, 20, 20, 20, "Assets/BILD1321.png", 0.013, 0.013),
 	enemies = {},
-	blocks = {}
+	blocks = {},
+	animations = {}
 }
 
 game_speed = 1
@@ -74,7 +75,7 @@ function love.load()
 
 	cursor_image = love.graphics.newImage("Assets/Cursor.png")
 	local g = anim8.newGrid(20, 20, cursor_image:getWidth(), cursor_image:getHeight())
-	cursor_animation = anim8.newAnimation(g('1-2',1), 0.5)
+	table.insert(entities.animations, anim8.newAnimation(g('1-2',1), 0.5))
 
 	next_block_interaction = love.timer.getTime()
 	next_rendering_switch = love.timer.getTime()
@@ -98,7 +99,7 @@ function love.update(delta_time)
 	if not in_focus then return end
 
 	if keyboard_or_controller then
-		local explode, time_rising = entities.player:handleInput(delta_time, game_speed, 1)
+		local exploding, time_rising = entities.player:handleInput(delta_time, game_speed, 1)
 	else 
 		mouse_x, mouse_y, left_mouse_button_pressed, right_mouse_button_pressed = entities.player:handleInput(delta_time, game_speed, 3)
 		entities.player.position.x = mouse_x / horisontal_draw_scale
@@ -109,21 +110,6 @@ function love.update(delta_time)
 
 	entities.player:handleMovementLogic(entities)
 
-	if explode then
-		for i = #entities.enemies, 1, -1 do
-			if entities.enemies[i].position.x > entities.player.position.x then
-				entities.enemies[i].velocity.speedX = entities.enemies[i].velocity.speedX + 10 * delta_time * game_speed
-			else
-				entities.enemies[i].velocity.speedX = entities.enemies[i].velocity.speedX - 10 * delta_time * game_speed
-			end
-			if entities.enemies[i].position.y > entities.player.position.y then
-				entities.enemies[i].velocity.speedY = entities.enemies[i].velocity.speedY + 10 * delta_time * game_speed
-			else
-				entities.enemies[i].velocity.speedY = entities.enemies[i].velocity.speedY - 10 * delta_time * game_speed
-			end
-		end	
-	end
-
 	for i = #entities.enemies, 1, -1 do
 		entities.enemies[i]:update(delta_time, entities.player, game_speed)
 		--if check_collision(entities.player, entities.enemies[i]) then
@@ -131,7 +117,9 @@ function love.update(delta_time)
 		--end
 	end
 
-	cursor_animation:update(delta_time)
+	for i = 1, #entities.animations, 1 do
+		entities.animations[i]:update(delta_time)
+	end
 end
 
 memory_usage = 0
@@ -149,25 +137,7 @@ function love.draw()
 	end
 
 	-- HUD
-	love.graphics.printf("FPS: " .. love.timer.getFPS(), 20, 10, 1000, "left" )
-	love.graphics.printf("Particles: " .. #entities.enemies, 20, 20, 1000, "left" )
-	love.graphics.printf("Gamespeed: " .. game_speed, 20, 30, 1000, "left" )
-	love.graphics.printf("Y speed: " .. entities.player.velocity.speedY, 20, 40, 1000, "left")
-	love.graphics.printf("X speed: " .. entities.player.velocity.speedX, 20, 50, 1000, "left")
-	love.graphics.printf("can jump: " .. tostring(entities.player.can_jump), 20, 60, 1000, "left")
-	love.graphics.printf("is jumping: " .. tostring(entities.player.is_jumping), 20, 70, 1000, "left")
-	love.graphics.printf("Memory actually used (in kB): " .. memory_usage, 20, 80, 1000, "left")
-	love.graphics.printf("Entities drawn " .. entities_drawn, 20, 90, 1000, "left")
-	if keyboard_or_controller then
-		love.graphics.printf("Arrow keys for movement, space to jump", screen.width - 255, 10, 1000, "left")
-	else
-		love.graphics.printf("Left button to add, right to remove,", screen.width - 255, 10, 1000, "left")
-	end
-	love.graphics.printf("'i' to swap state", screen.width - 255, 20, 1000, "left")
-	if last_memory_check + 1 < love.timer.getTime() then
-		memory_usage = collectgarbage("count")
-		last_memory_check = love.timer.getTime()
-	end
+	print_HUD()
 end
 
 function render_screen_with_offset()
@@ -230,8 +200,10 @@ function render_screen_without_offset()
 	local x, y = love.mouse.getX(), love.mouse.getY()
 	x = x - (x % 10)
 	y = y - (y % 10)
-	cursor_animation:draw(cursor_image, x, y, 0, horisontal_draw_scale, vertical_draw_scale)
 
+	for i = 1, #entities.animations, 1 do
+		entities.animations[i]:draw(cursor_image, x, y, 0, horisontal_draw_scale, vertical_draw_scale)
+	end 
 	-- Draw Items
 
 	-- Draw enemies
@@ -281,4 +253,43 @@ end
 
 function drawRectWithoutOffset(entity)
 	love.graphics.rectangle("fill", entity.position.x * horisontal_draw_scale, vertical_draw_scale * entity.position.y, entity.width * horisontal_draw_scale, entity.height * vertical_draw_scale)
+end
+
+function print_HUD()
+	love.graphics.printf("FPS: " .. love.timer.getFPS(), 20, 10, 1000, "left" )
+	love.graphics.printf("Particles: " .. #entities.enemies, 20, 20, 1000, "left" )
+	love.graphics.printf("Gamespeed: " .. game_speed, 20, 30, 1000, "left" )
+	love.graphics.printf("Y speed: " .. entities.player.velocity.speedY, 20, 40, 1000, "left")
+	love.graphics.printf("X speed: " .. entities.player.velocity.speedX, 20, 50, 1000, "left")
+	love.graphics.printf("can jump: " .. tostring(entities.player.can_jump), 20, 60, 1000, "left")
+	love.graphics.printf("is jumping: " .. tostring(entities.player.is_jumping), 20, 70, 1000, "left")
+	love.graphics.printf("Memory actually used (in kB): " .. memory_usage, 20, 80, 1000, "left")
+	love.graphics.printf("Entities drawn " .. entities_drawn, 20, 90, 1000, "left")
+	if keyboard_or_controller then
+		love.graphics.printf("Arrow keys for movement, space to jump", screen.width - 255, 10, 1000, "left")
+	else
+		love.graphics.printf("Left button to add, right to remove,", screen.width - 255, 10, 1000, "left")
+	end
+	love.graphics.printf("'i' to swap state", screen.width - 255, 20, 1000, "left")
+	if last_memory_check + 1 < love.timer.getTime() then
+		memory_usage = collectgarbage("count")
+		last_memory_check = love.timer.getTime()
+	end
+end
+
+function explode(exploding, delta_time)
+	if exploding then
+		for i = #entities.enemies, 1, -1 do
+			if entities.enemies[i].position.x > entities.player.position.x then
+				entities.enemies[i].velocity.speedX = entities.enemies[i].velocity.speedX + 10 * delta_time * game_speed
+			else
+				entities.enemies[i].velocity.speedX = entities.enemies[i].velocity.speedX - 10 * delta_time * game_speed
+			end
+			if entities.enemies[i].position.y > entities.player.position.y then
+				entities.enemies[i].velocity.speedY = entities.enemies[i].velocity.speedY + 10 * delta_time * game_speed
+			else
+				entities.enemies[i].velocity.speedY = entities.enemies[i].velocity.speedY - 10 * delta_time * game_speed
+			end
+		end	
+	end
 end
