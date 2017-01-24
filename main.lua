@@ -3,27 +3,31 @@ require "enemies"
 require "player"
 require "items"
 require "helper_functions"
+require "tile"
+local constants = require "constants"
 local anim8 = require "anim8/anim8"
 
 -- Window Initialization
 
 screen = { width = 800, height = 480, flags = nil}
-love.window.setMode( screen.width, screen.height, { resizable = true, vsync = true, minwidth = 800, minheight=480 , fullscreen=false })
+love.window.setMode( screen.width, screen.height, { resizable = true, vsync = true, minwidth = 800, minheight= 480 , fullscreen=false })
 love.window.setTitle( "Generic Planet Mover and Attractor" )
 keyboard_or_controller = false
-draw_with_offset = false
+editor_mode = true
 vertical_draw_scale = 1
 horisontal_draw_scale = 1
 
 -- Value Initialization
 
-local constants = require "constants"
+tileTypes = {}
 
 entities = {
 	player = Player:new(20, 20, 20, 20, "Assets/BILD1321.png", 0.013, 0.013),
 	enemies = {},
 	blocks = {},
-	animations = {}
+	animations = {},
+	tileTypes = {},
+	tiles = {}
 }
 
 game_speed = 1
@@ -37,44 +41,45 @@ end
 function love.load()
 	--background = love.graphics.newImage("Assets/background.jpg")
 	hide_cursor()
+	table.insert(tileTypes, Tile:newType("Assets/grass2.png", 1, 1, true))
 	love.graphics.setBackgroundColor( 0, 0, 25 )
 	--boundaries
-	table.insert(entities.blocks, Block:newRock( -1, 0, 1, screen.height))
-	table.insert(entities.blocks, Block:newRock( 0, -1, screen.width, 1))
-	table.insert(entities.blocks, Block:newRock( screen.width, 0, 1, screen.height))
-	table.insert(entities.blocks, Block:newRock( 0, screen.height, screen.width, 1))
+	table.insert(entities.tiles, Tile:newTile( -1, 0, 1, screen.height, 1))
+	table.insert(entities.tiles, Tile:newTile( 0, -1, screen.width, 1, 1))
+	table.insert(entities.tiles, Tile:newTile( screen.width, 0, 1, screen.height, 1))
+	table.insert(entities.tiles, Tile:newTile( 0, screen.height, screen.width, 1, 1))
 	-- highest level
 
-	table.insert(entities.blocks, Block:newRock( 150, 280, 20, 20))
-	table.insert(entities.blocks, Block:newRock( 250, 280, 20, 20))
-	table.insert(entities.blocks, Block:newRock( 350, 280, 20, 20))
-	table.insert(entities.blocks, Block:newRock( 450, 280, 20, 20))
-	table.insert(entities.blocks, Block:newRock( 550, 280, 20, 20))
-	table.insert(entities.blocks, Block:newRock( 650, 280, 20, 20))
+	table.insert(entities.tiles, Tile:newTile( 150, 280, 32, 32, 1))
+	table.insert(entities.tiles, Tile:newTile( 250, 280, 32, 32, 1))
+	table.insert(entities.tiles, Tile:newTile( 350, 280, 32, 32, 1))
+	table.insert(entities.tiles, Tile:newTile( 450, 280, 32, 32, 1))
+	table.insert(entities.tiles, Tile:newTile( 550, 280, 32, 32, 1))
+	table.insert(entities.tiles, Tile:newTile( 650, 280, 32, 32, 1))
 
 
-	table.insert(entities.blocks, Block:newRock( 100, 350, 20, 20))
-	table.insert(entities.blocks, Block:newRock( 200, 350, 20, 20))
-	table.insert(entities.blocks, Block:newRock( 300, 350, 20, 20))
-	table.insert(entities.blocks, Block:newRock( 400, 350, 20, 20))
-	table.insert(entities.blocks, Block:newRock( 500, 350, 20, 20))
-	table.insert(entities.blocks, Block:newRock( 600, 350, 20, 20))
+	table.insert(entities.tiles, Tile:newTile( 100, 350, 32, 32, 1))
+	table.insert(entities.tiles, Tile:newTile( 200, 350, 32, 32, 1))
+	table.insert(entities.tiles, Tile:newTile( 300, 350, 32, 32, 1))
+	table.insert(entities.tiles, Tile:newTile( 400, 350, 32, 32, 1))
+	table.insert(entities.tiles, Tile:newTile( 500, 350, 32, 32, 1))
+	table.insert(entities.tiles, Tile:newTile( 600, 350, 32, 32, 1))
 
 
 	-- lowest level
-	table.insert(entities.blocks, Block:newRock( 150, 420, 20, 20))
-	table.insert(entities.blocks, Block:newRock( 250, 420, 20, 20))
-	table.insert(entities.blocks, Block:newRock( 350, 420, 20, 20))
-	table.insert(entities.blocks, Block:newRock( 450, 420, 20, 20))
-	table.insert(entities.blocks, Block:newRock( 550, 420, 20, 20))
-	table.insert(entities.blocks, Block:newRock( 650, 420, 20, 20))
+	table.insert(entities.tiles, Tile:newTile( 150, 420, 32, 32, 1))
+	table.insert(entities.tiles, Tile:newTile( 250, 420, 32, 32, 1))
+	table.insert(entities.tiles, Tile:newTile( 350, 420, 32, 32, 1))
+	table.insert(entities.tiles, Tile:newTile( 450, 420, 32, 32, 1))
+	table.insert(entities.tiles, Tile:newTile( 550, 420, 32, 32, 1))
+	table.insert(entities.tiles, Tile:newTile( 650, 420, 32, 32, 1))
 
 	for i = 1, 400 do
 		table.insert(entities.enemies, Grunt:new(10*i , 5*i))
 	end
 
 	cursor_image = love.graphics.newImage("Assets/Cursor.png")
-	local g = anim8.newGrid(20, 20, cursor_image:getWidth(), cursor_image:getHeight())
+	local g = anim8.newGrid(32, 32, cursor_image:getWidth(), cursor_image:getHeight())
 	table.insert(entities.animations, anim8.newAnimation(g('1-2',1), 0.5))
 
 	next_block_interaction = love.timer.getTime()
@@ -129,37 +134,37 @@ function love.draw()
 	entities_drawn = 0
 	-- Draw Room
 	--love.graphics.draw(background)
-
-	if draw_with_offset then
-		render_screen_with_offset()
+	if editor_mode then
+		print("Editor mode")
+		render_screen_editor()
 	else
-		render_screen_without_offset()
+		print("Play mode")
+		render_screen()
 	end
-
 	-- HUD
 	print_HUD()
 end
 
-function render_screen_with_offset()
+function render_screen()
 	-- camera offset in regards to player
-	local x_offset = (entities.player.position.x - (screen.width / 2) + entities.player.width / 2)
-	local y_offset = (entities.player.position.y - (screen.height / 2) + entities.player.height / 2)
+	local x_offset = (entities.player.position.x - (screen.width / 2))
+	local y_offset = (entities.player.position.y - (screen.height / 2))
 
 	local camera_rectangle = { 
 		position =  {
-			x = entities.player.position.x - screen.width / 2,
-			y = entities.player.position.y - screen.height / 2
+			x = x_offset,
+			y = y_offset
 		},
 		width = screen.width,
 		height = screen.height
 	}
 
 	-- Draw blocks
-	for i = #entities.blocks, 1, -1 do
-		local block = entities.blocks[i];
+	for i = #entities.tiles, 1, -1 do
+		local tile = entities.tiles[i];
 		--love.graphics.draw(block.image, block.x, block.y, 0, 0, 0, 0, 0, 0, 0)
-		if check_collision(block, camera_rectangle) then
-			drawRectWithOffset(block, x_offset, y_offset)
+		if check_collision(tile, camera_rectangle) then
+			draw_tile(tile, x_offset, y_offset)
 			entities_drawn = entities_drawn + 1
 		end
 	end
@@ -167,39 +172,38 @@ function render_screen_with_offset()
 	-- Draw Items
 
 	-- Draw player
-	drawRectWithOffset(entities.player, x_offset, y_offset)
-	draw_sprite_with_offset(entities.player, x_offset, y_offset)
+	drawRect(entities.player, x_offset, y_offset)
+	draw_sprite(entities.player, x_offset, y_offset)
 
 	-- Draw enemies
 	for i = #entities.enemies, 1, -1 do
 		local enemy = entities.enemies[i]
 		if check_collision(enemy, camera_rectangle) then
-			drawRectWithOffset(enemy, x_offset, y_offset)
+			drawRect(enemy, x_offset, y_offset)
 			entities_drawn = entities_drawn + 1
 		end
 	end
 
 	if love.keyboard.isDown("i") and next_rendering_switch < love.timer.getTime() then
-		draw_with_offset = not draw_with_offset
+		editor_mode = not editor_mode
 		next_rendering_switch = love.timer.getTime() + 1
 		keyboard_or_controller = false
 	end
 end
 
-function render_screen_without_offset()
+function render_screen_editor()
 	-- Draw blocks
-	for i = #entities.blocks, 1, -1 do
-		local block = entities.blocks[i];
-		--love.graphics.draw(block.image, block.x, block.y, 0, 0, 0, 0, 0, 0, 0)
-		drawRectWithoutOffset(block)
+	for i = #entities.tiles, 1, -1 do
+		local tile = entities.tiles[i];
+		draw_tile(tile, 0, 0)
 		entities_drawn = entities_drawn + 1
 	end
 
 	-- Draw cursor
 
 	local x, y = love.mouse.getX(), love.mouse.getY()
-	x = x - (x % 10)
-	y = y - (y % 10)
+	x = x - (x % 32)
+	y = y - (y % 32)
 
 	for i = 1, #entities.animations, 1 do
 		entities.animations[i]:draw(cursor_image, x, y, 0, horisontal_draw_scale, vertical_draw_scale)
@@ -209,12 +213,13 @@ function render_screen_without_offset()
 	-- Draw enemies
 	for i = #entities.enemies, 1, -1 do
 		local enemy = entities.enemies[i]
-		drawRectWithoutOffset(enemy)
+		drawRect(enemy, 0, 0)
 		entities_drawn = entities_drawn + 1
+		drawRect( { position = { x = love.mouse.getX() / horisontal_draw_scale, y = love.mouse.getY() / vertical_draw_scale }, width = 5, height = 5 }, 0, 0)
 	end
 
 	if love.keyboard.isDown("i") and next_rendering_switch < love.timer.getTime() then
-		draw_with_offset = true
+		editor_mode = not editor_mode
 		next_rendering_switch = love.timer.getTime() + 1
 		keyboard_or_controller = true
 	end
@@ -223,36 +228,36 @@ end
 function handle_mouse_editor(x, y, left, right)
 	if left and next_block_interaction < love.timer.getTime() then
 		local occupied_space = false
-		for i = 1, #entities.blocks do
-			if check_collision(entities.blocks[i], { position = { x = (x - (x % 10)) / horisontal_draw_scale, y = (y - (y % 10)) / vertical_draw_scale }, width = 20, height = 20 }) then
+		for i = 1, #entities.tiles do
+			if check_collision(entities.tiles[i], { position = { x = (x - (x % 32)), y = (y - (y % 32)) }, width = 32, height = 32 }) then
 				occupied_space = true
 			end
 		end
 		if not occupied_space then
-			table.insert(entities.blocks, Block:newRock((x - (x % 10)) / horisontal_draw_scale, (y - (y % 10)) / vertical_draw_scale, 20, 20))
+			table.insert(entities.tiles, Tile:newTile((x - (x % 32)), (y - (y % 32)), 32, 32, 1))
 			next_block_interaction = love.timer.getTime() + .1
 		end
 	end
 
 	if right and next_block_interaction < love.timer.getTime() then
-		for i = #entities.blocks, 1, -1 do
-			if check_collision(entities.blocks[i], { position = { x = (x - (x % 10)) / horisontal_draw_scale, y = (y - (y % 10)) / vertical_draw_scale }, width = 1, height = 1 }) then
-				table.remove(entities.blocks, i)
+		for i = #entities.tiles, 1, -1 do
+			if check_collision(entities.tiles[i], { position = { x = (x - (x % 32)), y = (y - (y % 32)) }, width = 1, height = 1 }) then
+				table.remove(entities.tiles, i)
 			end
 		end
 	end
 end
 
-function draw_sprite_with_offset(entity, x_offset, y_offset)
-	love.graphics.draw(entity.sprite.sprite, (entities.player.position.x - x_offset) * horisontal_draw_scale, (entities.player.position.y - y_offset) * vertical_draw_scale, 0, 0.013, 0.013, entity.width / 2, entity.height / 2, 0, 0)
+function draw_tile(tile, x_offset, y_offset)
+	love.graphics.draw(tileTypes[tile.kind].sprite.sprite, (tile.position.x - x_offset) * horisontal_draw_scale, (tile.position.y - y_offset) * vertical_draw_scale, 0, 1, 1)
 end
 
-function drawRectWithOffset(entity, x_offset, y_offset)
+function draw_sprite(entity, x_offset, y_offset)
+	love.graphics.draw(entity.sprite.sprite, (entities.player.position.x - x_offset) * horisontal_draw_scale, (entities.player.position.y - y_offset) * vertical_draw_scale, 0, 0.013, 0.013)
+end
+
+function drawRect(entity, x_offset, y_offset)
 	love.graphics.rectangle("fill", (entity.position.x - x_offset) * horisontal_draw_scale, vertical_draw_scale * (entity.position.y - y_offset), entity.width * horisontal_draw_scale, entity.height * vertical_draw_scale)
-end
-
-function drawRectWithoutOffset(entity)
-	love.graphics.rectangle("fill", entity.position.x * horisontal_draw_scale, vertical_draw_scale * entity.position.y, entity.width * horisontal_draw_scale, entity.height * vertical_draw_scale)
 end
 
 function print_HUD()
@@ -274,22 +279,5 @@ function print_HUD()
 	if last_memory_check + 1 < love.timer.getTime() then
 		memory_usage = collectgarbage("count")
 		last_memory_check = love.timer.getTime()
-	end
-end
-
-function explode(exploding, delta_time)
-	if exploding then
-		for i = #entities.enemies, 1, -1 do
-			if entities.enemies[i].position.x > entities.player.position.x then
-				entities.enemies[i].velocity.speedX = entities.enemies[i].velocity.speedX + 10 * delta_time * game_speed
-			else
-				entities.enemies[i].velocity.speedX = entities.enemies[i].velocity.speedX - 10 * delta_time * game_speed
-			end
-			if entities.enemies[i].position.y > entities.player.position.y then
-				entities.enemies[i].velocity.speedY = entities.enemies[i].velocity.speedY + 10 * delta_time * game_speed
-			else
-				entities.enemies[i].velocity.speedY = entities.enemies[i].velocity.speedY - 10 * delta_time * game_speed
-			end
-		end	
 	end
 end

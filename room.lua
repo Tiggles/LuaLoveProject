@@ -23,15 +23,3 @@ function Room:newBlock(x, y, width, height, kind)
 		return Block:newRock(x, y, width, height)
 	end
 end
-
-Block = {}
-
-function Block:newRock(x, y, width, height)
-	newRock = {
-		position = Position:new(x, y),
-		width = width,
-		height = height
-	}
-	self.__index = self
-	return setmetatable(newRock, self)
-end

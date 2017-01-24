@@ -11,7 +11,7 @@ use_mouse = 3
 top_down = 1
 side_ways = 2
 isometric = 3
-game_view_state = 2
+game_view_state = 1
 
 function set_game_view_state(state)
 	game_view_state = state
@@ -87,9 +87,11 @@ function Player:handleMovementLogic(entities)
 
 	world:add( player, self.position.x, self.position.y, self.width, self.height)
 
-	for i = 1, #entities.blocks, 1 do
-		block = entities.blocks[i]
-		world:add( { name = "block" }, block.position.x, block.position.y, block.width, block.height)
+	for i = 1, #entities.tiles, 1 do
+		tile = entities.tiles[i]
+		if tileTypes[tile.kind].blocks then
+			world:add( { name = "blocking_tile" }, tile.position.x, tile.position.y, tile.width, tile.height)
+		end
 	end
 
 	local intendedX = self.position.x + self.velocity.speedX * game_speed
