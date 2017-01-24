@@ -2,16 +2,17 @@ require "velocity"
 require "position"
 
 local bump = require("bump/bump")
+local constants = require "constants"
+
 
 time_rising = true
+use_keyboard = 0
+use_controller = 1
+use_mouse = 2
+
+game_view_state = 0
+
 Player = {}
-use_keyboard = 1
-use_controller = 2
-use_mouse = 3
-top_down = 1
-side_ways = 2
-isometric = 3
-game_view_state = 1
 
 function set_game_view_state(state)
 	game_view_state = state
@@ -45,11 +46,12 @@ function Player:handleInput(delta_time, game_speed, control_type)
 end
 
 function Player:handleKeyBoardInput(delta_time, game_speed)
-	if top_down == game_view_state then
+	print("Game view state: " .. game_view_state)
+	if constants.world_constants.top_down == game_view_state then
 		self:handleTopdownKeyboard(delta_time, game_speed)
-	elseif side_ways == game_view_state then
+	elseif constants.world_constants.side_ways == game_view_state then
 		self:handleSidewaysKeyboard(delta_time, game_speed)
-	elseif isometric == game_view_state then
+	elseif constants.world_constants.isometric == game_view_state then
 
 	end
 
@@ -89,8 +91,9 @@ function Player:handleMovementLogic(entities)
 
 	for i = 1, #entities.tiles, 1 do
 		tile = entities.tiles[i]
-		if tileTypes[tile.kind].blocks then
-			world:add( { name = "blocking_tile" }, tile.position.x, tile.position.y, tile.width, tile.height)
+		tile_kind = entities.tileTypes[tile.kind]
+		if tile_kind.is_blocking then
+			world:add( { name = "blocking_tile" }, tile.position.x, tile.position.y, tile_kind.width, tile_kind.height)
 		end
 	end
 
@@ -101,7 +104,7 @@ function Player:handleMovementLogic(entities)
 
 	if intendedX ~= actualX then
 		self.velocity.speedX = self.velocity.speedX * 0.8
-		if side_ways then
+		if constants.world_constants.side_ways then
 			self.can_jump = true
 		end
 		if intendedX > actualX and self.is_jumping then
@@ -113,7 +116,7 @@ function Player:handleMovementLogic(entities)
 	self.is_jumping = false
 	if intendedY ~= actualY then
 		self.velocity.speedY = self.velocity.speedY * 0.8
-		if side_ways and intendedY > actualY then
+		if constants.world_constants.side_ways and intendedY > actualY then
 			self.can_jump = true
 		end
 	end
@@ -129,11 +132,11 @@ end
 function Player:handleIsometricMouseControls(delta_time, game_speed)
 	self.position.x = love.mouse.getX()
 	self.position.y = love.mouse.getY()
-	return love.mouse.getX(), love.mouse.getY(), love.mouse.isDown(1), love.mouse.isDown(2)
+	return love.mouse.getX(), love.mouse.getY(), love.mouse.isDown(1), love.mouse.isDown(2), love.keyboard.isDown("q"), love.keyboard.isDown("e")
 end
 
 function Player:handleTopdownKeyboard(delta_time, game_speed)
-	print("top_down")
+	-- Horizontal
 	if love.keyboard.isDown("left") and not love.keyboard.isDown("right") then
 		self.velocity.speedX = self.velocity.speedX - self.velocity.delta * delta_time * game_speed
 	elseif self.velocity.speedX < 0 then 

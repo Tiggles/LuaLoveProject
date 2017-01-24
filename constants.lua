@@ -6,9 +6,10 @@ return {
 		downRoom = 3
 	},
 
-	worldConstants = {
-		sideways = 0,
+	world_constants = {
+		side_ways = 0,
 		isometric = 1,
-		top_down = 2
+		top_down = 2,
+		editor = 3
 	}
 }
