@@ -46,7 +46,6 @@ function Player:handleInput(delta_time, game_speed, control_type)
 end
 
 function Player:handleKeyBoardInput(delta_time, game_speed)
-	print("Game view state: " .. game_view_state)
 	if constants.world_constants.top_down == game_view_state then
 		self:handleTopdownKeyboard(delta_time, game_speed)
 	elseif constants.world_constants.side_ways == game_view_state then
