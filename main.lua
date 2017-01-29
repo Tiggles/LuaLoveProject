@@ -136,6 +136,9 @@ function love.update(delta_time)
 
 	for i = #entities.enemies, 1, -1 do
 		entities.enemies[i]:update(delta_time, entities.player, game_speed)
+		if check_collision(entities.enemies[i], entities.player) then
+			table.remove(entities.enemies, i)
+		end
 	end
 
 	for i = 1, #entities.animations, 1 do
@@ -232,9 +235,11 @@ function render_screen_editor()
 		local enemy = entities.enemies[i]
 		draw_rect(enemy, 0, 0)
 		entities_drawn = entities_drawn + 1
-		draw_rect( { position = { x = love.mouse.getX() / horisontal_draw_scale, y = love.mouse.getY() / vertical_draw_scale }, width = 5 * horisontal_draw_scale, height = 5 * vertical_draw_scale }, 0, 0)
 	end
 
+
+	draw_rect( { position = { x = love.mouse.getX() / horisontal_draw_scale, y = love.mouse.getY() / vertical_draw_scale }, width = 5 * horisontal_draw_scale, height = 5 * vertical_draw_scale }, 0, 0)
+	
 	if love.keyboard.isDown("i") and next_rendering_switch < love.timer.getTime() then
 		editor_mode = not editor_mode
 		next_rendering_switch = love.timer.getTime() + 1
