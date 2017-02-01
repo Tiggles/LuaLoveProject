@@ -10,7 +10,7 @@ use_keyboard = 0
 use_controller = 1
 use_mouse = 2
 
-game_view_state = 0
+game_view_state = 2
 
 Player = {}
 

@@ -18,7 +18,7 @@ last_tile_change = love.timer.getTime()
 vertical_draw_scale = 1
 horisontal_draw_scale = 1
 LUA_INDEX_OFFSET = 1
-tile_index = 1 -- Start at first index
+tile_index = 0 -- Start at first index
 
 -- Value Initialization
 
@@ -43,7 +43,7 @@ function love.load()
 	--background = love.graphics.newImage("Assets/background.jpg")
 	hide_cursor()
 	table.insert(entities.tileTypes, TileType:newType("Assets/grass2.png", 1, 1, 32, 32, true))
-	table.insert(entities.tileTypes, TileType:newType("Assets/BILD1321.png", 1, 1, 32, 32, true))
+	table.insert(entities.tileTypes, TileType:newType("Assets/BILD1321.png", 1, 1, 32, 32, false))
 	love.graphics.setBackgroundColor( 0, 0, 25 )
 	--boundaries
 	for i = 0, 24, 1 do
@@ -89,7 +89,7 @@ function love.load()
 	local g = anim8.newGrid(32, 32, cursor_image:getWidth(), cursor_image:getHeight())
 	table.insert(entities.animations, anim8.newAnimation(g('1-2',1), 0.5))
 
-	current_item = entities.tileTypes[tile_index]
+	current_item = entities.tileTypes[tile_index + LUA_INDEX_OFFSET]
 	next_block_interaction = love.timer.getTime()
 	next_rendering_switch = love.timer.getTime()
 end
@@ -124,15 +124,14 @@ function love.update(delta_time)
 
 	if q and love.timer.getTime() > last_tile_change + 0.2 then
 		last_tile_change = love.timer.getTime()
-		print("q " .. ((tile_index - 1) % #entities.tileTypes) + LUA_INDEX_OFFSET)
-		tile_index = ((tile_index - 1) % #entities.tileTypes) + LUA_INDEX_OFFSET;
+		tile_index = (tile_index - 1) % #entities.tileTypes;
 	end
 	if e and love.timer.getTime() > last_tile_change + 0.2 then
 		last_tile_change = love.timer.getTime()
-		tile_index = (tile_index + 1) % (#entities.tileTypes + LUA_INDEX_OFFSET);
+		tile_index = (tile_index + 1) % #entities.tileTypes;
 	end
 
-	current_item = entities.tileTypes[ tile_index ]
+	current_item = entities.tileTypes[ tile_index + LUA_INDEX_OFFSET ]
 
 	for i = #entities.enemies, 1, -1 do
 		entities.enemies[i]:update(delta_time, entities.player, game_speed)
@@ -259,7 +258,7 @@ function handle_mouse_editor(x, y, left, right)
 			end
 		end
 		if not occupied_space then
-			table.insert(entities.tiles, Tile:newTile((x - (x % 32)), (y - (y % 32)), tile_index))
+			table.insert(entities.tiles, Tile:newTile((x - (x % 32)), (y - (y % 32)), tile_index + LUA_INDEX_OFFSET))
 			next_block_interaction = love.timer.getTime() + .1
 		end
 	end
