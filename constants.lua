@@ -11,5 +11,10 @@ return {
 		isometric = 1,
 		top_down = 2,
 		editor = 3
+	},
+
+	editor_constants = {
+		tile = 1,
+		collectible = 2
 	}
 }

@@ -19,7 +19,7 @@ vertical_draw_scale = 1
 horisontal_draw_scale = 1
 LUA_INDEX_OFFSET = 1
 tile_index = 0 -- Start at first index
-debug = false
+debug = true
 
 -- Value Initialization
 
@@ -28,8 +28,9 @@ entities = {
 	enemies = {},
 	blocks = {},
 	animations = {},
-	tileTypes = {},
-	tiles = {}
+	editorTypes = {},
+	tiles = {},
+	collectibles = {}
 }
 
 game_speed = 1
@@ -44,9 +45,11 @@ end
 function love.load()
 	--background = love.graphics.newImage("Assets/background.jpg")
 	hide_cursor()
-	table.insert(entities.tileTypes, TileType:newType("Assets/grass2.png", 1, 1, 32, 32, true))
-	table.insert(entities.tileTypes, TileType:newType("Assets/BILD1321.png", 0.02, 0.02, 32, 32, false))
-	table.insert(entities.tileTypes, TileType:newType("Assets/coin.png", 0.5, 0.5, 32, 32, false))
+	table.insert(entities.editorTypes, TileType:newType("Assets/grass2.png", 1, 1, 32, 32, true))
+	table.insert(entities.editorTypes, TileType:newType("Assets/BILD1321.png", 0.02, 0.02, 32, 32, false))
+	table.insert(entities.editorTypes, CollectibleType:newType("Assets/coin.png", 0.5, 0.5, 32, 32, false))
+
+	entities.player.collected_coins = 0
 
 	love.graphics.setBackgroundColor( 0, 0, 25 )
 	--boundaries
@@ -67,7 +70,6 @@ function love.load()
 	table.insert(entities.tiles, Tile:newTile( 448, 288, 1))
 	table.insert(entities.tiles, Tile:newTile( 544, 288, 1))
 	table.insert(entities.tiles, Tile:newTile( 640, 288, 1))
-
 
 	table.insert(entities.tiles, Tile:newTile( 96, 352, 1))
 	table.insert(entities.tiles, Tile:newTile( 192, 352, 1))
@@ -93,7 +95,7 @@ function love.load()
 	local g = anim8.newGrid(32, 32, cursor_image:getWidth(), cursor_image:getHeight())
 	table.insert(entities.animations, anim8.newAnimation(g('1-2',1), 0.5))
 
-	current_item = entities.tileTypes[tile_index + LUA_INDEX_OFFSET]
+	current_item = entities.editorTypes[tile_index + LUA_INDEX_OFFSET]
 	next_block_interaction = love.timer.getTime()
 	next_rendering_switch = love.timer.getTime()
 end
@@ -128,14 +130,14 @@ function love.update(delta_time)
 
 	if q and love.timer.getTime() > last_tile_change + 0.2 then
 		last_tile_change = love.timer.getTime()
-		tile_index = (tile_index - 1) % #entities.tileTypes;
+		tile_index = (tile_index - 1) % #entities.editorTypes;
 	end
 	if e and love.timer.getTime() > last_tile_change + 0.2 then
 		last_tile_change = love.timer.getTime()
-		tile_index = (tile_index + 1) % #entities.tileTypes;
+		tile_index = (tile_index + 1) % #entities.editorTypes;
 	end
 
-	current_item = entities.tileTypes[ tile_index + LUA_INDEX_OFFSET ]
+	current_item = entities.editorTypes[ tile_index + LUA_INDEX_OFFSET ]
 
 	for i = #entities.enemies, 1, -1 do
 		entities.enemies[i]:update(delta_time, entities.player, game_speed)
@@ -170,7 +172,7 @@ function render_screen()
 	local x_offset = (entities.player.position.x - (screen.width / 2))
 	local y_offset = (entities.player.position.y - (screen.height / 2))
 
-	love.graphics.translate(-x_offset, -y_offset)
+	love.graphics.translate(-x_offset * horisontal_draw_scale, -y_offset * vertical_draw_scale)
 
 	local camera_rectangle = { 
 		position =  {
@@ -184,7 +186,7 @@ function render_screen()
 	-- Draw tiles
 	for i = #entities.tiles, 1, -1 do
 		local tile = entities.tiles[i];
-		local tile_kind = entities.tileTypes[tile.kind]
+		local kind = entities.editorTypes[tile.kind]
 		local collision_block = { position = tile.position, width = tile_kind.width, height = tile_kind.height }
 		if check_collision(collision_block, camera_rectangle) then
 			draw_tile(tile)
@@ -195,6 +197,15 @@ function render_screen()
 	-- Draw objects
 
 	-- Draw Items
+	for i = #entities.collectibles, 1, -1 do
+		local item = entities.collectibles[i]
+		local kind = entities.editorTypes[item.kind]
+		local collision_block = { position = item.position, width = kind.width, height = kind.height }
+		if check_collision(collision_block, camera_rectangle) then
+			draw_tile(item)
+			entities_drawn = entities_drawn + 1
+		end
+	end
 
 	-- Draw player
 	draw_rect(entities.player, x_offset, y_offset)
@@ -224,6 +235,12 @@ function render_screen_editor()
 		entities_drawn = entities_drawn + 1
 	end
 
+	for i = #entities.collectibles, 1, -1 do
+		local collectible = entities.collectibles[i];
+		draw_tile(collectible)
+		entities_drawn = entities_drawn + 1
+	end
+
 	-- Draw cursor
 
 	local x, y = love.mouse.getX(), love.mouse.getY()
@@ -242,9 +259,11 @@ function render_screen_editor()
 		entities_drawn = entities_drawn + 1
 	end
 
+
+
 	-- Render current block
-	love.graphics.draw(tile_frame.sprite.sprite, 10 * horisontal_draw_scale, 170 * vertical_draw_scale, 0, tile_frame.scale_factor_x * horisontal_draw_scale, tile_frame.scale_factor_y * vertical_draw_scale)
-	love.graphics.draw(entities.tileTypes[tile_index + LUA_INDEX_OFFSET].sprite.sprite, 22 * horisontal_draw_scale, 182 * vertical_draw_scale, 0, entities.tileTypes[tile_index + LUA_INDEX_OFFSET].scale_factor_x * horisontal_draw_scale, entities.tileTypes[tile_index + LUA_INDEX_OFFSET].scale_factor_y * vertical_draw_scale)
+	love.graphics.draw(tile_frame.sprite.sprite, 10 * horisontal_draw_scale, 170 * vertical_draw_scale, 0, tile_frame.scale_x * horisontal_draw_scale, tile_frame.scale_y * vertical_draw_scale)
+	love.graphics.draw(entities.editorTypes[tile_index + LUA_INDEX_OFFSET].sprite.sprite, 22 * horisontal_draw_scale, 182 * vertical_draw_scale, 0, entities.editorTypes[tile_index + LUA_INDEX_OFFSET].scale_x * horisontal_draw_scale, entities.editorTypes[tile_index + LUA_INDEX_OFFSET].scale_y * vertical_draw_scale)
 
 	draw_rect( { position = { x = love.mouse.getX() / horisontal_draw_scale, y = love.mouse.getY() / vertical_draw_scale }, width = 5 * horisontal_draw_scale, height = 5 * vertical_draw_scale }, 0, 0)
 	
@@ -260,14 +279,31 @@ function handle_mouse_editor(x, y, left, right)
 		local occupied_space = false
 		for i = 1, #entities.tiles do
 			local tile = entities.tiles[i]
-			local tile_kind = entities.tileTypes[tile.kind]
-			local collision_block = { position = tile.position, width = tile_kind.width, height = tile_kind.height }
-			if check_collision(collision_block, { position = { x = (x - (x % 32) + 1), y = (y - (y % 32)) + 1 }, width = 30, height = 30 }) then
+			local kind = entities.editorTypes[tile.kind]
+			local collision_block = { position = tile.position, width = kind.width, height = kind.height }
+			if check_collision(collision_block, { position = { x = (x - (x % kind.width) + 1), y = (y - (y % kind.height)) + 1 }, width = 30, height = 30 }) then
+				occupied_space = true
+			end
+		end
+
+		for i = 1, #entities.collectibles do
+			local collectible = entities.collectibles[i]
+			local kind = entities.editorTypes[collectible.kind]
+			local collision_block = { position = collectible.position, width = kind.width, height = kind.height }
+			if check_collision(collision_block, { position = { x = (x - (x % kind.width) + 1), y = (y - (y % kind.height)) + 1 }, width = 30, height = 30 }) then
 				occupied_space = true
 			end
 		end
 		if not occupied_space then
-			table.insert(entities.tiles, Tile:newTile((x - (x % 32)), (y - (y % 32)), tile_index + LUA_INDEX_OFFSET))
+			local editor_type = entities.editorTypes[ tile_index + LUA_INDEX_OFFSET ]
+			if editor_type.kind_type == constants.editor_constants.tile then
+				print("tile")
+				table.insert(entities.tiles, Tile:newTile((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET))
+			end
+			if editor_type.kind_type == constants.editor_constants.collectibles then
+				print("collectible")
+				table.insert(entities.collectibles, Collectible:newCollectible((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET))
+			end
 			next_block_interaction = love.timer.getTime() + .1
 		end
 	end
@@ -275,7 +311,7 @@ function handle_mouse_editor(x, y, left, right)
 	if right and next_block_interaction < love.timer.getTime() then
 		for i = #entities.tiles, 1, -1 do
 			local tile = entities.tiles[i]
-			if check_collision({ position = tile.position, width = tile_kind.width, height = tile_kind.height }, { position = { x = x, y = y }, width = 1, height = 1 }) then
+			if check_collision({ position = tile.position, width = kind.width, height = kind.height }, { position = { x = x, y = y }, width = 1, height = 1 }) then
 				table.remove(entities.tiles, i)
 			end
 		end
@@ -283,7 +319,7 @@ function handle_mouse_editor(x, y, left, right)
 end
 
 function draw_tile(tile, x_offset, y_offset)
-	love.graphics.draw(entities.tileTypes[tile.kind].sprite.sprite, (tile.position.x) * horisontal_draw_scale, (tile.position.y) * vertical_draw_scale, 0, entities.tileTypes[tile.kind].scale_factor_x * horisontal_draw_scale, entities.tileTypes[tile.kind].scale_factor_y * vertical_draw_scale)
+	love.graphics.draw(entities.editorTypes[tile.kind].sprite.sprite, (tile.position.x) * horisontal_draw_scale, (tile.position.y) * vertical_draw_scale, 0, entities.editorTypes[tile.kind].scale_x * horisontal_draw_scale, entities.editorTypes[tile.kind].scale_y * vertical_draw_scale)
 end
 
 function draw_sprite(entity, x_offset, y_offset)

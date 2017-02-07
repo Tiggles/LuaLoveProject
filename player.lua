@@ -1,5 +1,6 @@
 require "velocity"
 require "position"
+require "sprite"
 
 local bump = require("bump/bump")
 local constants = require "constants"
@@ -90,7 +91,7 @@ function Player:handleMovementLogic(entities)
 
 	for i = 1, #entities.tiles, 1 do
 		tile = entities.tiles[i]
-		tile_kind = entities.tileTypes[tile.kind]
+		tile_kind = entities.editorTypes[tile.kind]
 		if tile_kind.is_blocking then
 			world:add( { name = "blocking_tile" }, tile.position.x, tile.position.y, tile_kind.width, tile_kind.height)
 		end
