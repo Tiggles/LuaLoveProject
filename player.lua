@@ -10,7 +10,7 @@ use_keyboard = 0
 use_controller = 1
 use_mouse = 2
 
-game_view_state = 2
+game_view_state = constants.world_constants.side_ways
 
 Player = {}
 

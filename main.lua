@@ -10,7 +10,7 @@ local anim8 = require "anim8/anim8"
 -- Window Initialization
 
 screen = { width = 800, height = 480, flags = nil}
-love.window.setMode( screen.width, screen.height, { resizable = true, vsync = true, minwidth = 800, minheight= 480 , fullscreen=false })
+love.window.setMode( screen.width, screen.height, { resizable = true, vsync = true, minwidth = 800, minheight= 480 , fullscreen = false })
 love.window.setTitle( "Generic Planet Mover and Attractor" )
 keyboard_or_controller = false
 editor_mode = true
@@ -43,7 +43,7 @@ function love.load()
 	--background = love.graphics.newImage("Assets/background.jpg")
 	hide_cursor()
 	table.insert(entities.tileTypes, TileType:newType("Assets/grass2.png", 1, 1, 32, 32, true))
-	table.insert(entities.tileTypes, TileType:newType("Assets/BILD1321.png", 1, 1, 32, 32, false))
+	table.insert(entities.tileTypes, TileType:newType("Assets/BILD1321.png", 0.02, 0.02, 32, 32, false))
 	love.graphics.setBackgroundColor( 0, 0, 25 )
 	--boundaries
 	for i = 0, 24, 1 do
