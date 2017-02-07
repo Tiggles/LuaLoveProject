@@ -304,6 +304,12 @@ function handle_mouse_editor(x, y, left, right)
 				print("collectible")
 				table.insert(entities.collectibles, Collectible:newCollectible((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET))
 			end
+			if editor_type.kind_type == constants.editor_constants.enemies then
+
+			end
+			if editor_type.kind_type == constants.editor_constants.event_points then
+
+			end
 			next_block_interaction = love.timer.getTime() + .1
 		end
 	end
