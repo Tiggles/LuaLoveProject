@@ -33,6 +33,7 @@ entities = {
 
 game_speed = 1
 in_focus = false
+tile_frame = TileType:newType("Assets/tileframe.png", 0.8, 0.8, 70, 70, false)
 
 function hide_cursor()
 	cursor = love.mouse.newCursor("Assets/empty_cursor.png")
@@ -44,6 +45,8 @@ function love.load()
 	hide_cursor()
 	table.insert(entities.tileTypes, TileType:newType("Assets/grass2.png", 1, 1, 32, 32, true))
 	table.insert(entities.tileTypes, TileType:newType("Assets/BILD1321.png", 0.02, 0.02, 32, 32, false))
+	table.insert(entities.tileTypes, TileType:newType("Assets/coin.png", 0.5, 0.5, 32, 32, false))
+
 	love.graphics.setBackgroundColor( 0, 0, 25 )
 	--boundaries
 	for i = 0, 24, 1 do
@@ -236,6 +239,9 @@ function render_screen_editor()
 		entities_drawn = entities_drawn + 1
 	end
 
+	-- Render current block
+	love.graphics.draw(tile_frame.sprite.sprite, 10 * horisontal_draw_scale, 170 * vertical_draw_scale, 0, tile_frame.scale_factor_x * horisontal_draw_scale, tile_frame.scale_factor_y * vertical_draw_scale)
+	love.graphics.draw(entities.tileTypes[tile_index + LUA_INDEX_OFFSET].sprite.sprite, 22 * horisontal_draw_scale, 182 * vertical_draw_scale, 0, entities.tileTypes[tile_index + LUA_INDEX_OFFSET].scale_factor_x * horisontal_draw_scale, entities.tileTypes[tile_index + LUA_INDEX_OFFSET].scale_factor_y * vertical_draw_scale)
 
 	draw_rect( { position = { x = love.mouse.getX() / horisontal_draw_scale, y = love.mouse.getY() / vertical_draw_scale }, width = 5 * horisontal_draw_scale, height = 5 * vertical_draw_scale }, 0, 0)
 	
