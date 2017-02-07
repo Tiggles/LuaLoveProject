@@ -19,6 +19,7 @@ vertical_draw_scale = 1
 horisontal_draw_scale = 1
 LUA_INDEX_OFFSET = 1
 tile_index = 0 -- Start at first index
+debug = false
 
 -- Value Initialization
 
@@ -161,13 +162,15 @@ function love.draw()
 		render_screen()
 	end
 	-- HUD
-	print_HUD()
+	print_DEBUG()
 end
 
 function render_screen()
 	-- camera offset in regards to player
 	local x_offset = (entities.player.position.x - (screen.width / 2))
 	local y_offset = (entities.player.position.y - (screen.height / 2))
+
+	love.graphics.translate(-x_offset, -y_offset)
 
 	local camera_rectangle = { 
 		position =  {
@@ -184,7 +187,7 @@ function render_screen()
 		local tile_kind = entities.tileTypes[tile.kind]
 		local collision_block = { position = tile.position, width = tile_kind.width, height = tile_kind.height }
 		if check_collision(collision_block, camera_rectangle) then
-			draw_tile(tile, x_offset, y_offset)
+			draw_tile(tile)
 			entities_drawn = entities_drawn + 1
 		end
 	end
@@ -217,7 +220,7 @@ function render_screen_editor()
 	-- Draw blocks
 	for i = #entities.tiles, 1, -1 do
 		local tile = entities.tiles[i];
-		draw_tile(tile, 0, 0)
+		draw_tile(tile)
 		entities_drawn = entities_drawn + 1
 	end
 
@@ -280,18 +283,19 @@ function handle_mouse_editor(x, y, left, right)
 end
 
 function draw_tile(tile, x_offset, y_offset)
-	love.graphics.draw(entities.tileTypes[tile.kind].sprite.sprite, (tile.position.x - x_offset) * horisontal_draw_scale, (tile.position.y - y_offset) * vertical_draw_scale, 0, entities.tileTypes[tile.kind].scale_factor_x * horisontal_draw_scale, entities.tileTypes[tile.kind].scale_factor_y * vertical_draw_scale)
+	love.graphics.draw(entities.tileTypes[tile.kind].sprite.sprite, (tile.position.x) * horisontal_draw_scale, (tile.position.y) * vertical_draw_scale, 0, entities.tileTypes[tile.kind].scale_factor_x * horisontal_draw_scale, entities.tileTypes[tile.kind].scale_factor_y * vertical_draw_scale)
 end
 
 function draw_sprite(entity, x_offset, y_offset)
-	love.graphics.draw(entity.sprite.sprite, (entities.player.position.x - x_offset) * horisontal_draw_scale, (entities.player.position.y - y_offset) * vertical_draw_scale, 0, entity.sprite.scale_factor_x * horisontal_draw_scale, entity.sprite.scale_factor_y * vertical_draw_scale)
+	love.graphics.draw(entity.sprite.sprite, (entities.player.position.x) * horisontal_draw_scale, (entities.player.position.y) * vertical_draw_scale, 0, entity.sprite.scale_factor_x * horisontal_draw_scale, entity.sprite.scale_factor_y * vertical_draw_scale)
 end
 
 function draw_rect(entity, x_offset, y_offset)
-	love.graphics.rectangle("fill", (entity.position.x - x_offset) * horisontal_draw_scale, vertical_draw_scale * (entity.position.y - y_offset), entity.width * horisontal_draw_scale, entity.height * vertical_draw_scale)
+	love.graphics.rectangle("fill", (entity.position.x) * horisontal_draw_scale, vertical_draw_scale * (entity.position.y), entity.width * horisontal_draw_scale, entity.height * vertical_draw_scale)
 end
 
-function print_HUD()
+function print_DEBUG()
+	if not debug then return end
 	love.graphics.printf("FPS: " .. love.timer.getFPS(), 20, 10, 1000, "left" )
 	love.graphics.printf("Particles: " .. #entities.enemies, 20, 20, 1000, "left" )
 	love.graphics.printf("Gamespeed: " .. game_speed, 20, 30, 1000, "left" )
