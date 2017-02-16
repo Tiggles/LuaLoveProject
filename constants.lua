@@ -15,6 +15,7 @@ return {
 
 	editor_constants = {
 		tile = 1,
-		collectible = 2
+		collectible = 2,
+		event = 3
 	}
 }

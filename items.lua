@@ -11,7 +11,7 @@ function CollectibleType:newType(path, scale_x, scale_y, width, height)
 		scale_y = scale_y,
 		width = width,
 		height = height,
-		type_kind = constants.editor_constants.collectible
+		kind_type = constants.editor_constants.collectible
 	}
 	self.__index = self
 	return setmetatable(newCollectibleType, self)

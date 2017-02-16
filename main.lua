@@ -4,6 +4,7 @@ require "player"
 require "items"
 require "helper_functions"
 require "tile"
+require "event"
 local constants = require "constants"
 local anim8 = require "anim8/anim8"
 
@@ -30,7 +31,8 @@ entities = {
 	animations = {},
 	editorTypes = {},
 	tiles = {},
-	collectibles = {}
+	collectibles = {},
+	event_tiles = {}
 }
 
 game_speed = 1
@@ -48,6 +50,8 @@ function love.load()
 	table.insert(entities.editorTypes, TileType:newType("Assets/grass2.png", 1, 1, 32, 32, true))
 	table.insert(entities.editorTypes, TileType:newType("Assets/BILD1321.png", 0.02, 0.02, 32, 32, false))
 	table.insert(entities.editorTypes, CollectibleType:newType("Assets/coin.png", 0.5, 0.5, 32, 32, false))
+	table.insert(entities.editorTypes, EventType:newType("Assets/start.png", 0.5, 0.5, 32, 32, false, kinds.start))
+	table.insert(entities.editorTypes, EventType:newType("Assets/end.png", 0.5, 0.5, 32, 32, false, kinds.finish))
 
 	entities.player.collected_coins = 0
 
@@ -64,28 +68,7 @@ function love.load()
 	end
 	-- highest level
 
-	table.insert(entities.tiles, Tile:newTile( 160, 288, 1))
-	table.insert(entities.tiles, Tile:newTile( 256, 288, 1))
-	table.insert(entities.tiles, Tile:newTile( 352, 288, 1))
-	table.insert(entities.tiles, Tile:newTile( 448, 288, 1))
-	table.insert(entities.tiles, Tile:newTile( 544, 288, 1))
-	table.insert(entities.tiles, Tile:newTile( 640, 288, 1))
-
-	table.insert(entities.tiles, Tile:newTile( 96, 352, 1))
-	table.insert(entities.tiles, Tile:newTile( 192, 352, 1))
-	table.insert(entities.tiles, Tile:newTile( 288, 352, 1))
-	table.insert(entities.tiles, Tile:newTile( 384, 352, 1))
-	table.insert(entities.tiles, Tile:newTile( 512, 352, 1))
-	table.insert(entities.tiles, Tile:newTile( 608, 352, 1))
-
-
-	-- lowest level
-	table.insert(entities.tiles, Tile:newTile( 160, 416, 1))
-	table.insert(entities.tiles, Tile:newTile( 256, 416, 1))
-	table.insert(entities.tiles, Tile:newTile( 352, 416, 1))
-	table.insert(entities.tiles, Tile:newTile( 448, 416, 1))
-	table.insert(entities.tiles, Tile:newTile( 544, 416, 1))
-	table.insert(entities.tiles, Tile:newTile( 640, 416, 1))
+	init_tiles_frame(entities.tiles)
 
 	for i = 1, 400 do
 		table.insert(entities.enemies, Grunt:new(10*i , 5*i))
@@ -207,15 +190,24 @@ function render_screen()
 		end
 	end
 
+	local tile = entities.event_tiles[1]
+	if tile ~= nil then
+		draw_tile(tile)
+	end
+	tile = entities.event_tiles[2]
+	if tile ~= nil then
+		draw_tile(tile)
+	end
+
 	-- Draw player
-	draw_rect(entities.player, x_offset, y_offset)
-	draw_sprite(entities.player, x_offset, y_offset)
+	draw_rect(entities.player)
+	draw_sprite(entities.player)
 
 	-- Draw enemies
 	for i = #entities.enemies, 1, -1 do
 		local enemy = entities.enemies[i]
 		if check_collision(enemy, camera_rectangle) then
-			draw_rect(enemy, x_offset, y_offset)
+			draw_rect(enemy)
 			entities_drawn = entities_drawn + 1
 		end
 	end
@@ -238,6 +230,12 @@ function render_screen_editor()
 	for i = #entities.collectibles, 1, -1 do
 		local collectible = entities.collectibles[i];
 		draw_tile(collectible)
+		entities_drawn = entities_drawn + 1
+	end
+
+	for i = #entities.event_tiles, 1, -1 do
+		local event = entities.event_tiles[i];
+		draw_tile(event)
 		entities_drawn = entities_drawn + 1
 	end
 
@@ -267,9 +265,11 @@ function render_screen_editor()
 
 	draw_rect( { position = { x = love.mouse.getX() / horisontal_draw_scale, y = love.mouse.getY() / vertical_draw_scale }, width = 5 * horisontal_draw_scale, height = 5 * vertical_draw_scale }, 0, 0)
 	
-	if love.keyboard.isDown("i") and next_rendering_switch < love.timer.getTime() then
+	if love.keyboard.isDown("i") and next_rendering_switch < love.timer.getTime() and #entities.event_tiles == 2 then
 		editor_mode = not editor_mode
 		next_rendering_switch = love.timer.getTime() + 1
+		entities.player.position.x = entities.event_tiles[1].position.x
+		entities.player.position.y = entities.event_tiles[1].position.y
 		keyboard_or_controller = true
 	end
 end
@@ -296,19 +296,17 @@ function handle_mouse_editor(x, y, left, right)
 		end
 		if not occupied_space then
 			local editor_type = entities.editorTypes[ tile_index + LUA_INDEX_OFFSET ]
+			print(editor_type.kind_type)
 			if editor_type.kind_type == constants.editor_constants.tile then
-				print("tile")
 				table.insert(entities.tiles, Tile:newTile((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET))
-			end
-			if editor_type.kind_type == constants.editor_constants.collectibles then
-				print("collectible")
+			elseif editor_type.kind_type == constants.editor_constants.collectible then
 				table.insert(entities.collectibles, Collectible:newCollectible((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET))
-			end
-			if editor_type.kind_type == constants.editor_constants.enemies then
-
-			end
-			if editor_type.kind_type == constants.editor_constants.event_points then
-
+			elseif editor_type.kind_type == constants.editor_constants.event then
+				if editor_type.event_type == kinds.start then
+					entities.event_tiles[kinds.start] = Event:newEvent((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET)
+				elseif editor_type.event_type == kinds.finish then
+					entities.event_tiles[kinds.finish] = Event:newEvent((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET)
+				end
 			end
 			next_block_interaction = love.timer.getTime() + .1
 		end
@@ -319,16 +317,24 @@ function handle_mouse_editor(x, y, left, right)
 			local tile = entities.tiles[i]
 			if check_collision({ position = tile.position, width = kind.width, height = kind.height }, { position = { x = x, y = y }, width = 1, height = 1 }) then
 				table.remove(entities.tiles, i)
+				return
+			end
+		end
+		for i = #entities.collectibles, 1, -1 do
+			local collectible = entities.collectibles[i]
+			if check_collision({ position = collectible.position, width = kind.width, height = kind.height }, { position = { x = x, y = y }, width = 1, height = 1 }) then
+				table.remove(entities.collectibles, i)
+				return
 			end
 		end
 	end
 end
 
-function draw_tile(tile, x_offset, y_offset)
+function draw_tile(tile)
 	love.graphics.draw(entities.editorTypes[tile.kind].sprite.sprite, (tile.position.x) * horisontal_draw_scale, (tile.position.y) * vertical_draw_scale, 0, entities.editorTypes[tile.kind].scale_x * horisontal_draw_scale, entities.editorTypes[tile.kind].scale_y * vertical_draw_scale)
 end
 
-function draw_sprite(entity, x_offset, y_offset)
+function draw_sprite(entity)
 	love.graphics.draw(entity.sprite.sprite, (entities.player.position.x) * horisontal_draw_scale, (entities.player.position.y) * vertical_draw_scale, 0, entity.sprite.scale_factor_x * horisontal_draw_scale, entity.sprite.scale_factor_y * vertical_draw_scale)
 end
 
