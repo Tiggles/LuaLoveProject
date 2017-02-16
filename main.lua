@@ -76,7 +76,16 @@ function love.load()
 
 	cursor_image = love.graphics.newImage("Assets/Cursor.png")
 	local g = anim8.newGrid(32, 32, cursor_image:getWidth(), cursor_image:getHeight())
-	table.insert(entities.animations, anim8.newAnimation(g('1-2',1), 0.5))
+	table.insert(entities.animations, anim8.newAnimation(g('1-2', 1), 0.5))
+
+	coin_image = love.graphics.newImage("Assets/coin.png")
+	local h = anim8.newGrid(64, 64, coin_image:getWidth(), coin_image:getHeight())
+	table.insert(entities.animations, anim8.newAnimation(h('1-64', 1), 0.02))
+
+	exit_image = love.graphics.newImage("Assets/exit_portal.png")
+	local ep = anim8.newGrid(64, 64, exit_image:getWidth(), exit_image:getHeight())
+	table.insert(entities.animations, anim8.newAnimation(ep('1-13', 1), 0.2))
+
 
 	current_item = entities.editorTypes[tile_index + LUA_INDEX_OFFSET]
 	next_block_interaction = love.timer.getTime()
@@ -126,6 +135,21 @@ function love.update(delta_time)
 		entities.enemies[i]:update(delta_time, entities.player, game_speed)
 		if check_collision(entities.enemies[i], entities.player) then
 			table.remove(entities.enemies, i)
+		end
+	end
+
+	if editor_mode == false then
+		for i = #game_coins, 1, -1 do
+			local collectible = game_coins[i]
+			local kind = entities.editorTypes[collectible.kind]
+			if (check_collision( { position = collectible.position, width = kind.width, height = kind.height }, entities.player)) then
+				table.remove(game_coins, i)
+				entities.player.collected_coins = entities.player.collected_coins + 1
+			end
+		end
+		local exit = entities.event_tiles[2]
+		if check_collision( { position = exit.position, width = entities.editorTypes[exit.kind].width, height = entities.editorTypes[exit.kind].height }, entities.player) then
+			love.event.quit()
 		end
 	end
 
@@ -180,24 +204,19 @@ function render_screen()
 	-- Draw objects
 
 	-- Draw Items
-	for i = #entities.collectibles, 1, -1 do
-		local item = entities.collectibles[i]
-		local kind = entities.editorTypes[item.kind]
-		local collision_block = { position = item.position, width = kind.width, height = kind.height }
+	for i = #game_coins, 1, -1 do
+		local collectible = game_coins[i]
+		local kind = entities.editorTypes[collectible.kind]
+		local collision_block = { position = collectible.position, width = kind.width, height = kind.height }
 		if check_collision(collision_block, camera_rectangle) then
-			draw_tile(item)
+			entities.animations[2]:draw(coin_image, collectible.position.x * horisontal_draw_scale, collectible.position.y * vertical_draw_scale, 0, horisontal_draw_scale * kind.scale_x, vertical_draw_scale * kind.scale_y)
 			entities_drawn = entities_drawn + 1
 		end
 	end
 
-	local tile = entities.event_tiles[1]
-	if tile ~= nil then
-		draw_tile(tile)
-	end
-	tile = entities.event_tiles[2]
-	if tile ~= nil then
-		draw_tile(tile)
-	end
+	-- Render exit
+
+	entities.animations[3]:draw(exit_image, entities.event_tiles[2].position.x * horisontal_draw_scale, entities.event_tiles[2].position.y * vertical_draw_scale, 0, entities.editorTypes[5].scale_x * horisontal_draw_scale, entities.editorTypes[5].scale_y * vertical_draw_scale)
 
 	-- Draw player
 	draw_rect(entities.player)
@@ -229,7 +248,8 @@ function render_screen_editor()
 
 	for i = #entities.collectibles, 1, -1 do
 		local collectible = entities.collectibles[i];
-		draw_tile(collectible)
+		local kind = entities.editorTypes[collectible.kind]
+		entities.animations[2]:draw(coin_image, collectible.position.x * horisontal_draw_scale, collectible.position.y * vertical_draw_scale, 0, horisontal_draw_scale * kind.scale_x, vertical_draw_scale * kind.scale_y)
 		entities_drawn = entities_drawn + 1
 	end
 
@@ -245,9 +265,7 @@ function render_screen_editor()
 	x = x - (x % current_item.width)
 	y = y - (y % current_item.height)
 
-	for i = 1, #entities.animations, 1 do
-		entities.animations[i]:draw(cursor_image, x, y, 0, horisontal_draw_scale, vertical_draw_scale)
-	end 
+	entities.animations[1]:draw(cursor_image, x, y, 0, horisontal_draw_scale, vertical_draw_scale)
 	-- Draw Items
 
 	-- Draw enemies
@@ -270,6 +288,7 @@ function render_screen_editor()
 		next_rendering_switch = love.timer.getTime() + 1
 		entities.player.position.x = entities.event_tiles[1].position.x
 		entities.player.position.y = entities.event_tiles[1].position.y
+		game_coins = table_clone(entities.collectibles)
 		keyboard_or_controller = true
 	end
 end
@@ -296,7 +315,6 @@ function handle_mouse_editor(x, y, left, right)
 		end
 		if not occupied_space then
 			local editor_type = entities.editorTypes[ tile_index + LUA_INDEX_OFFSET ]
-			print(editor_type.kind_type)
 			if editor_type.kind_type == constants.editor_constants.tile then
 				table.insert(entities.tiles, Tile:newTile((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET))
 			elseif editor_type.kind_type == constants.editor_constants.collectible then
@@ -315,6 +333,7 @@ function handle_mouse_editor(x, y, left, right)
 	if right and next_block_interaction < love.timer.getTime() then
 		for i = #entities.tiles, 1, -1 do
 			local tile = entities.tiles[i]
+			local kind = entities.editorTypes[tile.kind]
 			if check_collision({ position = tile.position, width = kind.width, height = kind.height }, { position = { x = x, y = y }, width = 1, height = 1 }) then
 				table.remove(entities.tiles, i)
 				return
@@ -322,6 +341,7 @@ function handle_mouse_editor(x, y, left, right)
 		end
 		for i = #entities.collectibles, 1, -1 do
 			local collectible = entities.collectibles[i]
+			local kind = entities.editorTypes[collectible.kind]
 			if check_collision({ position = collectible.position, width = kind.width, height = kind.height }, { position = { x = x, y = y }, width = 1, height = 1 }) then
 				table.remove(entities.collectibles, i)
 				return
@@ -343,6 +363,7 @@ function draw_rect(entity, x_offset, y_offset)
 end
 
 function print_DEBUG()
+	--love.graphics.translate(entities.player.position.x, entities.player.position.y)
 	if not debug then return end
 	love.graphics.printf("FPS: " .. love.timer.getFPS(), 20, 10, 1000, "left" )
 	love.graphics.printf("Particles: " .. #entities.enemies, 20, 20, 1000, "left" )
@@ -363,4 +384,5 @@ function print_DEBUG()
 		memory_usage = collectgarbage("count")
 		last_memory_check = love.timer.getTime()
 	end
+	love.graphics.printf("Collected coins " .. entities.player.collected_coins, 20, 100, 1000, "left")
 end

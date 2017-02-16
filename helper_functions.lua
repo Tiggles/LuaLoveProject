@@ -27,6 +27,14 @@ function update_gameSpeed(game_speed, delta_time, time_rising)
     end
 end
 
+function table_clone(old)
+    new = {}
+    for k, v in ipairs(old) do
+        new[k] = v
+    end
+    return new
+end
+
 function init_tiles_frame(tiles)
     table.insert(tiles, Tile:newTile( 160, 288, 1))
     table.insert(tiles, Tile:newTile( 256, 288, 1))
