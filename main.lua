@@ -261,17 +261,12 @@ function render_screen_editor()
 
 	-- Draw cursor
 
-	local x, y = love.mouse.getX(), love.mouse.getY()
-	x = x - (x % current_item.width)
-	y = y - (y % current_item.height)
-
-	entities.animations[1]:draw(cursor_image, x, y, 0, horisontal_draw_scale, vertical_draw_scale)
 	-- Draw Items
 
 	-- Draw enemies
 	for i = #entities.enemies, 1, -1 do
 		local enemy = entities.enemies[i]
-		draw_rect(enemy, 0, 0)
+		draw_rect(enemy)
 		entities_drawn = entities_drawn + 1
 	end
 
@@ -281,7 +276,11 @@ function render_screen_editor()
 	love.graphics.draw(tile_frame.sprite.sprite, 10 * horisontal_draw_scale, 170 * vertical_draw_scale, 0, tile_frame.scale_x * horisontal_draw_scale, tile_frame.scale_y * vertical_draw_scale)
 	love.graphics.draw(entities.editorTypes[tile_index + LUA_INDEX_OFFSET].sprite.sprite, 22 * horisontal_draw_scale, 182 * vertical_draw_scale, 0, entities.editorTypes[tile_index + LUA_INDEX_OFFSET].scale_x * horisontal_draw_scale, entities.editorTypes[tile_index + LUA_INDEX_OFFSET].scale_y * vertical_draw_scale)
 
-	draw_rect( { position = { x = love.mouse.getX() / horisontal_draw_scale, y = love.mouse.getY() / vertical_draw_scale }, width = 5 * horisontal_draw_scale, height = 5 * vertical_draw_scale }, 0, 0)
+	draw_rect( { position = { x = love.mouse.getX() / horisontal_draw_scale, y = love.mouse.getY() / vertical_draw_scale}, width = 5, height = 5  })
+	
+	if love.keyboard.isDown("escape") then
+		love.event.quit();
+	end
 	
 	if love.keyboard.isDown("i") and next_rendering_switch < love.timer.getTime() and #entities.event_tiles == 2 then
 		editor_mode = not editor_mode
@@ -294,6 +293,9 @@ function render_screen_editor()
 end
 
 function handle_mouse_editor(x, y, left, right)
+	local x, y = love.mouse.getX() / horisontal_draw_scale, love.mouse.getY() / vertical_draw_scale
+	x = (x - (x % current_item.width))
+	y = (y - (y % current_item.height))
 	if left and next_block_interaction < love.timer.getTime() then
 		local occupied_space = false
 		for i = 1, #entities.tiles do
