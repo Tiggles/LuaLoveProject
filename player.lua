@@ -1,6 +1,7 @@
 require "velocity"
 require "position"
 require "sprite"
+require("scoring")
 
 local bump = require("bump/bump")
 local constants = require "constants"
@@ -30,7 +31,8 @@ function Player:new(x, y, height, width, path, scale_x, scale_y)
 		is_jumping = false,
 		velocity = Velocity:newPlayerVelocity(),
 		nextTimeChangeAllowed = love.timer.getTime(),
-		nextJumpAllowed = love.timer.getTime()
+		nextJumpAllowed = love.timer.getTime(),
+		currentMultiplier = 1
 	}
 	self.__index = self
 	return setmetatable(newPlayer, self)
@@ -118,6 +120,7 @@ function Player:handleMovementLogic(entities)
 		self.velocity.speedY = self.velocity.speedY * 0.8
 		if constants.world_constants.side_ways and intendedY > actualY then
 			self.can_jump = true
+			Score:resetMultiplier()
 		end
 	end
 

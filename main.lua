@@ -7,6 +7,7 @@ require "tile"
 require "event"
 local constants = require "constants"
 local anim8 = require "anim8/anim8"
+require "scoring"
 
 -- Window Initialization
 
@@ -46,6 +47,11 @@ end
 
 function love.load()
 	--background = love.graphics.newImage("Assets/background.jpg")
+
+	Score:setupTimer(0)
+    Score:setupScoreCount(0)
+    Score:setupMultiplier()
+
 	hide_cursor()
 	table.insert(entities.editorTypes, TileType:newType("Assets/grass2.png", 1, 1, 32, 32, true))
 	table.insert(entities.editorTypes, TileType:newType("Assets/BILD1321.png", 0.02, 0.02, 32, 32, false))
@@ -103,6 +109,8 @@ end
 
 function love.update(delta_time)
 
+    Score:updateTimer(delta_time)
+    Score:updateScoreCount(delta_time)
 	local mouse_x, mouse_y, left_mouse_button_pressed, right_mouse_button_pressed
 	game_speed = update_gameSpeed(game_speed, delta_time, time_rising)
 
@@ -145,11 +153,13 @@ function love.update(delta_time)
 			if (check_collision( { position = collectible.position, width = kind.width, height = kind.height }, entities.player)) then
 				table.remove(game_coins, i)
 				entities.player.collected_coins = entities.player.collected_coins + 1
+				Score:addToMultiplier(1)
+				Score:pushScore(100)
 			end
 		end
 		local exit = entities.event_tiles[2]
 		if check_collision( { position = exit.position, width = entities.editorTypes[exit.kind].width, height = entities.editorTypes[exit.kind].height }, entities.player) then
-			love.event.quit()
+			editor_mode = true
 		end
 	end
 
@@ -170,8 +180,14 @@ function love.draw()
 	else
 		render_screen()
 	end
+
+	love.graphics.translate(0,0)
+
+	Score:drawTimer()
+    Score:drawScoreCount()
+	Score:drawMultiplier()
 	-- HUD
-	print_DEBUG()
+	-- print_DEBUG()
 end
 
 function render_screen()
@@ -236,6 +252,8 @@ function render_screen()
 		next_rendering_switch = love.timer.getTime() + 1
 		keyboard_or_controller = false
 	end
+
+	love.graphics.translate(x_offset * horisontal_draw_scale, y_offset * vertical_draw_scale)	
 end
 
 function render_screen_editor()
@@ -387,4 +405,5 @@ function print_DEBUG()
 		last_memory_check = love.timer.getTime()
 	end
 	love.graphics.printf("Collected coins " .. entities.player.collected_coins, 20, 100, 1000, "left")
+	love.graphics.printf("Current multiplier: " .. entities.player.currentMultiplier, 20, 110, 1000, "left")
 end
