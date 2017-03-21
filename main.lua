@@ -308,19 +308,24 @@ function render_screen_editor()
 		game_coins = table_clone(entities.collectibles)
 		keyboard_or_controller = true
 	end
+
+	if #entities.tiles > 108 then
+		for i = 1, #entities.tiles do
+			print("x: " .. entities.tiles[i].position.x .. ", y: " .. entities.tiles[i].position.y )
+			love.event.quit()
+		end
+	end
 end
 
 function handle_mouse_editor(x, y, left, right)
 	local x, y = love.mouse.getX() / horisontal_draw_scale, love.mouse.getY() / vertical_draw_scale
-	x = (x - (x % current_item.width))
-	y = (y - (y % current_item.height))
 	if left and next_block_interaction < love.timer.getTime() then
 		local occupied_space = false
 		for i = 1, #entities.tiles do
 			local tile = entities.tiles[i]
 			local kind = entities.editorTypes[tile.kind]
 			local collision_block = { position = tile.position, width = kind.width, height = kind.height }
-			if check_collision(collision_block, { position = { x = (x - (x % kind.width) + 1), y = (y - (y % kind.height)) + 1 }, width = 30, height = 30 }) then
+			if check_collision(collision_block, { position = { x = x, y = y }, width = 1, height = 1 }) then
 				occupied_space = true
 			end
 		end
@@ -329,7 +334,7 @@ function handle_mouse_editor(x, y, left, right)
 			local collectible = entities.collectibles[i]
 			local kind = entities.editorTypes[collectible.kind]
 			local collision_block = { position = collectible.position, width = kind.width, height = kind.height }
-			if check_collision(collision_block, { position = { x = (x - (x % kind.width) + 1), y = (y - (y % kind.height)) + 1 }, width = 30, height = 30 }) then
+			if check_collision(collision_block, { position = { x = x, y = y }, width = 1, height = 1 }) then
 				occupied_space = true
 			end
 		end
@@ -337,6 +342,7 @@ function handle_mouse_editor(x, y, left, right)
 			local editor_type = entities.editorTypes[ tile_index + LUA_INDEX_OFFSET ]
 			if editor_type.kind_type == constants.editor_constants.tile then
 				table.insert(entities.tiles, Tile:newTile((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET))
+				table.sort( entities.tiles, compare )
 			elseif editor_type.kind_type == constants.editor_constants.collectible then
 				table.insert(entities.collectibles, Collectible:newCollectible((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET))
 			elseif editor_type.kind_type == constants.editor_constants.event then
@@ -407,3 +413,11 @@ function print_DEBUG()
 	love.graphics.printf("Collected coins " .. entities.player.collected_coins, 20, 100, 1000, "left")
 	love.graphics.printf("Current multiplier: " .. entities.player.currentMultiplier, 20, 110, 1000, "left")
 end
+
+function compare(a, b)
+	if a.position.y < b.position.y then return true end
+	if a.position.y > b.position.y then return false end
+	return a.position.x < b.position.x
+	 
+end
+
