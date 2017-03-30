@@ -48,10 +48,6 @@ end
 function love.load()
 	--background = love.graphics.newImage("Assets/background.jpg")
 
-	Score:setupTimer(0)
-    Score:setupScoreCount(0)
-    Score:setupMultiplier()
-
 	hide_cursor()
 	table.insert(entities.editorTypes, TileType:newType("Assets/grass2.png", 1, 1, 32, 32, true))
 	table.insert(entities.editorTypes, TileType:newType("Assets/BILD1321.png", 0.02, 0.02, 32, 32, false))
@@ -108,9 +104,6 @@ function love.resize(width, height)
 end
 
 function love.update(delta_time)
-
-    Score:updateTimer(delta_time)
-    Score:updateScoreCount(delta_time)
 	local mouse_x, mouse_y, left_mouse_button_pressed, right_mouse_button_pressed
 	game_speed = update_gameSpeed(game_speed, delta_time, time_rising)
 
@@ -118,7 +111,9 @@ function love.update(delta_time)
 
 	if keyboard_or_controller then
 		local exploding, time_rising = entities.player:handleInput(delta_time, game_speed, 0)
-	else 
+		Score:updateTimer(delta_time)
+		Score:updateScoreCount(delta_time)
+	else
 		mouse_x, mouse_y, left_mouse_button_pressed, right_mouse_button_pressed, q, e = entities.player:handleInput(delta_time, game_speed, 2)
 		entities.player.position.x = mouse_x / horisontal_draw_scale
 		entities.player.position.y = mouse_y / vertical_draw_scale
@@ -146,7 +141,7 @@ function love.update(delta_time)
 		end
 	end
 
-	if editor_mode == false then
+	if keyboard == false then
 		for i = #game_coins, 1, -1 do
 			local collectible = game_coins[i]
 			local kind = entities.editorTypes[collectible.kind]
@@ -183,9 +178,11 @@ function love.draw()
 
 	love.graphics.translate(0,0)
 
-	Score:drawTimer()
-    Score:drawScoreCount()
-	Score:drawMultiplier()
+	if editor_mode == false then
+		Score:drawTimer()
+    	Score:drawScoreCount()
+		Score:drawMultiplier()
+	end
 	-- HUD
 	-- print_DEBUG()
 end
@@ -197,7 +194,7 @@ function render_screen()
 
 	love.graphics.translate(-x_offset * horisontal_draw_scale, -y_offset * vertical_draw_scale)
 
-	local camera_rectangle = { 
+	local camera_rectangle = {
 		position =  {
 			x = x_offset,
 			y = y_offset
@@ -253,7 +250,7 @@ function render_screen()
 		keyboard_or_controller = false
 	end
 
-	love.graphics.translate(x_offset * horisontal_draw_scale, y_offset * vertical_draw_scale)	
+	love.graphics.translate(x_offset * horisontal_draw_scale, y_offset * vertical_draw_scale)
 end
 
 function render_screen_editor()
@@ -295,17 +292,20 @@ function render_screen_editor()
 	love.graphics.draw(entities.editorTypes[tile_index + LUA_INDEX_OFFSET].sprite.sprite, 22 * horisontal_draw_scale, 182 * vertical_draw_scale, 0, entities.editorTypes[tile_index + LUA_INDEX_OFFSET].scale_x * horisontal_draw_scale, entities.editorTypes[tile_index + LUA_INDEX_OFFSET].scale_y * vertical_draw_scale)
 
 	draw_rect( { position = { x = love.mouse.getX() / horisontal_draw_scale, y = love.mouse.getY() / vertical_draw_scale}, width = 5, height = 5  })
-	
+
 	if love.keyboard.isDown("escape") then
 		love.event.quit();
 	end
-	
+
 	if love.keyboard.isDown("i") and next_rendering_switch < love.timer.getTime() and #entities.event_tiles == 2 then
 		editor_mode = not editor_mode
 		next_rendering_switch = love.timer.getTime() + 1
 		entities.player.position.x = entities.event_tiles[1].position.x
 		entities.player.position.y = entities.event_tiles[1].position.y
 		game_coins = table_clone(entities.collectibles)
+		Score:setupTimer(0)
+		Score:setupScoreCount(0)
+		Score:setupMultiplier()
 		keyboard_or_controller = true
 	end
 end
