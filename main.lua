@@ -24,18 +24,6 @@ tile_index = 0 -- Start at first index
 debug = true
 
 -- Value Initialization
-
-entities = {
-	player = Player:new(20, 20, 20, 20, "Assets/BILD1321.png", 0.013, 0.013),
-	enemies = {},
-	blocks = {},
-	animations = {},
-	editorTypes = {},
-	tiles = {},
-	collectibles = {},
-	event_tiles = {}
-}
-
 game_speed = 1
 in_focus = false
 tile_frame = TileType:newType("Assets/tileframe.png", 0.8, 0.8, 70, 70, false)
@@ -45,40 +33,27 @@ function hide_cursor()
 	love.mouse.setCursor(cursor)
 end
 
-function love.load()
+function love.load(args)
 	--background = love.graphics.newImage("Assets/background.jpg")
-
 	Score:setupTimer(0)
     Score:setupScoreCount(0)
     Score:setupMultiplier()
+    entities = init_entities()
+    read_level(args[2])
+    CannonFodder:new(1, 1)
 
 	hide_cursor()
-	table.insert(entities.editorTypes, TileType:newType("Assets/grass2.png", 1, 1, 32, 32, true))
+	table.insert(entities.editorTypes, TileType:newType("Assets/grass1.png", 1, 1, 32, 32, false))
+	table.insert(entities.editorTypes, TileType:newType("Assets/grass2.png", 1, 1, 32, 32, false))
+	table.insert(entities.editorTypes, TileType:newType("Assets/bricksred.png", 1, 1, 32, 32, true))
+	table.insert(entities.editorTypes, TileType:newType("Assets/bricksgray.png", 1, 1, 32, 32, true))
 	table.insert(entities.editorTypes, TileType:newType("Assets/BILD1321.png", 0.02, 0.02, 32, 32, false))
 	table.insert(entities.editorTypes, CollectibleType:newType("Assets/coin.png", 0.5, 0.5, 32, 32, false))
 	table.insert(entities.editorTypes, EventType:newType("Assets/start.png", 0.5, 0.5, 32, 32, false, kinds.start))
 	table.insert(entities.editorTypes, EventType:newType("Assets/end.png", 0.5, 0.5, 32, 32, false, kinds.finish))
-
-	entities.player.collected_coins = 0
+	table.insert(entities.editorTypes, EnemyType:newType("Assets/cannonfodder.png", 0.5, 0.5, 32, 32))
 
 	love.graphics.setBackgroundColor( 0, 0, 25 )
-	--boundaries
-	for i = 0, 24, 1 do
-		table.insert(entities.tiles, Tile:newTile(32 * i, -32, 1))
-		table.insert(entities.tiles, Tile:newTile(32 * i, screen.height, 1))
-	end
-
-	for i = 0, 14, 1 do
-		table.insert(entities.tiles, Tile:newTile(-32, 32 * i, 1))
-		table.insert(entities.tiles, Tile:newTile(screen.width, 32 * i, 1))
-	end
-	-- highest level
-
-	init_tiles_frame(entities.tiles)
-
-	for i = 1, 400 do
-		table.insert(entities.enemies, Grunt:new(10*i , 5*i))
-	end
 
 	cursor_image = love.graphics.newImage("Assets/Cursor.png")
 	local g = anim8.newGrid(32, 32, cursor_image:getWidth(), cursor_image:getHeight())
@@ -92,10 +67,20 @@ function love.load()
 	local ep = anim8.newGrid(64, 64, exit_image:getWidth(), exit_image:getHeight())
 	table.insert(entities.animations, anim8.newAnimation(ep('1-13', 1), 0.2))
 
+	cannonfodder_image = love.graphics.newImage("Assets/cannonfodder.png")
+
+	--for i = 1, 200 do
+	--	for j = 1, 10 do
+	--		table.insert(entities.enemies, Grunt:new(i, j))
+	--	end
+	--end
+
+	table.insert(entities.enemies, CannonFodder:new(20,20))
 
 	current_item = entities.editorTypes[tile_index + LUA_INDEX_OFFSET]
 	next_block_interaction = love.timer.getTime()
 	next_rendering_switch = love.timer.getTime()
+	--save_level("level.example")
 end
 
 function love.focus(focus)
@@ -141,9 +126,9 @@ function love.update(delta_time)
 
 	for i = #entities.enemies, 1, -1 do
 		entities.enemies[i]:update(delta_time, entities.player, game_speed)
-		if check_collision(entities.enemies[i], entities.player) then
-			table.remove(entities.enemies, i)
-		end
+		--if check_collision(entities.enemies[i], entities.player) then
+		--	table.remove(entities.enemies, i)
+		--end
 	end
 
 	if editor_mode == false then
@@ -152,7 +137,6 @@ function love.update(delta_time)
 			local kind = entities.editorTypes[collectible.kind]
 			if (check_collision( { position = collectible.position, width = kind.width, height = kind.height }, entities.player)) then
 				table.remove(game_coins, i)
-				entities.player.collected_coins = entities.player.collected_coins + 1
 				Score:addToMultiplier(1)
 				Score:pushScore(100)
 			end
@@ -284,7 +268,11 @@ function render_screen_editor()
 	-- Draw enemies
 	for i = #entities.enemies, 1, -1 do
 		local enemy = entities.enemies[i]
-		draw_rect(enemy)
+		if enemy.sprite == nil then
+			draw_rect(enemy)
+		else 
+			draw_sprite(enemy)
+		end
 		entities_drawn = entities_drawn + 1
 	end
 
@@ -297,6 +285,7 @@ function render_screen_editor()
 	draw_rect( { position = { x = love.mouse.getX() / horisontal_draw_scale, y = love.mouse.getY() / vertical_draw_scale}, width = 5, height = 5  })
 	
 	if love.keyboard.isDown("escape") then
+		save_level("with_collectibles.lvl")
 		love.event.quit();
 	end
 	
@@ -308,72 +297,6 @@ function render_screen_editor()
 		game_coins = table_clone(entities.collectibles)
 		keyboard_or_controller = true
 	end
-
-	if #entities.tiles > 108 then
-		for i = 1, #entities.tiles do
-			print("x: " .. entities.tiles[i].position.x .. ", y: " .. entities.tiles[i].position.y )
-			love.event.quit()
-		end
-	end
-end
-
-function handle_mouse_editor(x, y, left, right)
-	local x, y = love.mouse.getX() / horisontal_draw_scale, love.mouse.getY() / vertical_draw_scale
-	if left and next_block_interaction < love.timer.getTime() then
-		local occupied_space = false
-		for i = 1, #entities.tiles do
-			local tile = entities.tiles[i]
-			local kind = entities.editorTypes[tile.kind]
-			local collision_block = { position = tile.position, width = kind.width, height = kind.height }
-			if check_collision(collision_block, { position = { x = x, y = y }, width = 1, height = 1 }) then
-				occupied_space = true
-			end
-		end
-
-		for i = 1, #entities.collectibles do
-			local collectible = entities.collectibles[i]
-			local kind = entities.editorTypes[collectible.kind]
-			local collision_block = { position = collectible.position, width = kind.width, height = kind.height }
-			if check_collision(collision_block, { position = { x = x, y = y }, width = 1, height = 1 }) then
-				occupied_space = true
-			end
-		end
-		if not occupied_space then
-			local editor_type = entities.editorTypes[ tile_index + LUA_INDEX_OFFSET ]
-			if editor_type.kind_type == constants.editor_constants.tile then
-				table.insert(entities.tiles, Tile:newTile((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET))
-				table.sort( entities.tiles, compare )
-			elseif editor_type.kind_type == constants.editor_constants.collectible then
-				table.insert(entities.collectibles, Collectible:newCollectible((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET))
-			elseif editor_type.kind_type == constants.editor_constants.event then
-				if editor_type.event_type == kinds.start then
-					entities.event_tiles[kinds.start] = Event:newEvent((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET)
-				elseif editor_type.event_type == kinds.finish then
-					entities.event_tiles[kinds.finish] = Event:newEvent((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET)
-				end
-			end
-			next_block_interaction = love.timer.getTime() + .1
-		end
-	end
-
-	if right and next_block_interaction < love.timer.getTime() then
-		for i = #entities.tiles, 1, -1 do
-			local tile = entities.tiles[i]
-			local kind = entities.editorTypes[tile.kind]
-			if check_collision({ position = tile.position, width = kind.width, height = kind.height }, { position = { x = x, y = y }, width = 1, height = 1 }) then
-				table.remove(entities.tiles, i)
-				return
-			end
-		end
-		for i = #entities.collectibles, 1, -1 do
-			local collectible = entities.collectibles[i]
-			local kind = entities.editorTypes[collectible.kind]
-			if check_collision({ position = collectible.position, width = kind.width, height = kind.height }, { position = { x = x, y = y }, width = 1, height = 1 }) then
-				table.remove(entities.collectibles, i)
-				return
-			end
-		end
-	end
 end
 
 function draw_tile(tile)
@@ -381,7 +304,7 @@ function draw_tile(tile)
 end
 
 function draw_sprite(entity)
-	love.graphics.draw(entity.sprite.sprite, (entities.player.position.x) * horisontal_draw_scale, (entities.player.position.y) * vertical_draw_scale, 0, entity.sprite.scale_factor_x * horisontal_draw_scale, entity.sprite.scale_factor_y * vertical_draw_scale)
+	love.graphics.draw(entity.sprite.sprite, entity.position.x * horisontal_draw_scale, entity.position.y * vertical_draw_scale, 0, entity.sprite.scale_factor_x * horisontal_draw_scale, entity.sprite.scale_factor_y * vertical_draw_scale)
 end
 
 function draw_rect(entity, x_offset, y_offset)
@@ -389,6 +312,7 @@ function draw_rect(entity, x_offset, y_offset)
 end
 
 function print_DEBUG()
+	love.graphics.printf("y: " .. entities.player.position.y, 20, 10, 1000, "left" )
 	--love.graphics.translate(entities.player.position.x, entities.player.position.y)
 	if not debug then return end
 	love.graphics.printf("FPS: " .. love.timer.getFPS(), 20, 10, 1000, "left" )
@@ -413,11 +337,3 @@ function print_DEBUG()
 	love.graphics.printf("Collected coins " .. entities.player.collected_coins, 20, 100, 1000, "left")
 	love.graphics.printf("Current multiplier: " .. entities.player.currentMultiplier, 20, 110, 1000, "left")
 end
-
-function compare(a, b)
-	if a.position.y < b.position.y then return true end
-	if a.position.y > b.position.y then return false end
-	return a.position.x < b.position.x
-	 
-end
-

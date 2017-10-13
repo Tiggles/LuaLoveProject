@@ -17,5 +17,13 @@ return {
 		tile = 1,
 		collectible = 2,
 		event = 3
+	},
+
+	states = {
+		standing = 1,
+		moving = 2,
+		attacking = 3,
+		jumping = 4,
+		falling = 5
 	}
 }

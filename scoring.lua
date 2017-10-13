@@ -1,6 +1,7 @@
 
 Score = {
 	timer = {
+		active = true,
 		font_size = 26,
 		countType = 'up',
 		text_align = 'left',
@@ -104,6 +105,7 @@ function Score:drawTimer()
 end
 
 function Score:updateTimer(dt)
+	if not self.active then return end
 	if self.timer.countType == 'up' then
 		self.timer.current_time = (self.timer.current_time + dt)
 	elseif self.timer.countType == 'down' and self.timer.current_time > 0 then
@@ -117,6 +119,14 @@ end
 
 function Score:getCurrentScore()
 	return self.score_count.current_score
+end
+
+function Score:pauseTimer()
+	self.timer.active = false
+end
+
+function Score:startTimer()
+	self.timer.active = true
 end
 
 function Score:resetMultiplier()
