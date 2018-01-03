@@ -34,7 +34,7 @@ function hide_cursor()
 end
 
 function love.load(args)
-	--background = love.graphics.newImage("Assets/background.jpg")
+	background = love.graphics.newImage("Assets/background.jpg")
 	Score:setupTimer(0)
     Score:setupScoreCount(0)
     Score:setupMultiplier()
@@ -67,15 +67,9 @@ function love.load(args)
 	local ep = anim8.newGrid(64, 64, exit_image:getWidth(), exit_image:getHeight())
 	table.insert(entities.animations, anim8.newAnimation(ep('1-13', 1), 0.2))
 
+
+
 	cannonfodder_image = love.graphics.newImage("Assets/cannonfodder.png")
-
-	--for i = 1, 200 do
-	--	for j = 1, 10 do
-	--		table.insert(entities.enemies, Grunt:new(i, j))
-	--	end
-	--end
-
-	table.insert(entities.enemies, CannonFodder:new(20,20))
 
 	current_item = entities.editorTypes[tile_index + LUA_INDEX_OFFSET]
 	next_block_interaction = love.timer.getTime()
@@ -257,9 +251,11 @@ function render_screen_editor()
 	end
 
 	for i = #entities.event_tiles, 1, -1 do
-		local event = entities.event_tiles[i];
-		draw_tile(event)
-		entities_drawn = entities_drawn + 1
+		if entities.event_tiles[i] ~= nil then -- HACK
+			local event = entities.event_tiles[i];
+			draw_tile(event)
+			entities_drawn = entities_drawn + 1
+		end
 	end
 
 	-- Draw cursor
@@ -296,7 +292,6 @@ function render_screen_editor()
 		entities.player.position.x = entities.event_tiles[1].position.x
 		entities.player.position.y = entities.event_tiles[1].position.y
 		game_coins = table_clone(entities.collectibles)
-		Score:setupTimer(0)
 		Score:setupScoreCount(0)
 		Score:setupMultiplier()
 		keyboard_or_controller = true

@@ -45,7 +45,7 @@ function Score:setupTimer(start_time, font, font_size, position)
 	self.timer.font_size = font_size ~= nil and font_size or 24
 	self.timer.current_time = start_time ~= nil and start_time or 0
 	
-	if self.timer.font == nil then
+	if font == nil then
 		self.timer.font = love.graphics.newFont("Assets/PressStart2P.ttf", 
 			self.timer.font_size)
 	else
@@ -61,9 +61,9 @@ function Score:setupTimer(start_time, font, font_size, position)
 	end
 end
 
-function Score:setupScoreCount(start_score, font, font_size, position)
+function Score:setupScoreCount(font, font_size, position)
 	self.score_count.font_size = font_size ~= nil and font_size or 24
-	self.score_count.current_score = start_score ~= nil and start_score or 0
+    print("setting up score count")
 
 	if self.score_count.font == nil then
 		self.score_count.font = love.graphics.newFont("Assets/PressStart2P.ttf", self.score_count.font_size)
