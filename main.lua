@@ -35,9 +35,6 @@ end
 
 function love.load(args)
 	background = love.graphics.newImage("Assets/background.jpg")
-	Score:setupTimer(0)
-    Score:setupScoreCount(0)
-    Score:setupMultiplier()
     entities = init_entities()
     read_level(args[2])
     CannonFodder:new(1, 1)
@@ -292,7 +289,8 @@ function render_screen_editor()
 		entities.player.position.x = entities.event_tiles[1].position.x
 		entities.player.position.y = entities.event_tiles[1].position.y
 		game_coins = table_clone(entities.collectibles)
-		Score:setupScoreCount(0)
+		Score:setupTimer()
+		Score:setupScoreCount()
 		Score:setupMultiplier()
 		keyboard_or_controller = true
 	end

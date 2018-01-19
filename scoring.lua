@@ -63,8 +63,6 @@ end
 
 function Score:setupScoreCount(font, font_size, position)
 	self.score_count.font_size = font_size ~= nil and font_size or 24
-    print("setting up score count")
-
 	if self.score_count.font == nil then
 		self.score_count.font = love.graphics.newFont("Assets/PressStart2P.ttf", self.score_count.font_size)
 	else
