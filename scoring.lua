@@ -116,10 +116,10 @@ function Score:drawTimer()
 end
 
 function Score:updateTimer(dt)
-	if not self.active then return end
-	if self.timer.countType == 'up' then
+	if not self.timer.active then return end
+	if self.timer.countType == "up" then
 		self.timer.current_time = (self.timer.current_time + dt)
-	elseif self.timer.countType == 'down' and self.timer.current_time > 0 then
+	elseif self.timer.countType == "down" and self.timer.current_time > 0 then
 	    self.timer.current_time = (self.timer.current_time - dt)
 	end
 end
