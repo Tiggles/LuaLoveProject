@@ -20,7 +20,7 @@ last_tile_change = love.timer.getTime()
 vertical_draw_scale = 1
 horisontal_draw_scale = 1
 LUA_INDEX_OFFSET = 1
-tile_index = 0 -- Start at first index
+tile_index = 0
 debug = true
 
 -- Value Initialization
@@ -34,7 +34,6 @@ function hide_cursor()
 end
 
 function love.load(args)
-	background = love.graphics.newImage("Assets/background.jpg")
     entities = init_entities()
     read_level(args[2])
     CannonFodder:new(1, 1)
@@ -50,7 +49,7 @@ function love.load(args)
 	table.insert(entities.editorTypes, EventType:newType("Assets/end.png", 0.5, 0.5, 32, 32, false, kinds.finish))
 	table.insert(entities.editorTypes, EnemyType:newType("Assets/cannonfodder.png", 0.5, 0.5, 32, 32))
 
-	love.graphics.setBackgroundColor( 0, 0, 25 )
+	love.graphics.setBackgroundColor( 65, 75, 25 )
 
 	cursor_image = love.graphics.newImage("Assets/Cursor.png")
 	local g = anim8.newGrid(32, 32, cursor_image:getWidth(), cursor_image:getHeight())
@@ -110,13 +109,6 @@ function love.update(delta_time)
 
 	current_item = entities.editorTypes[ tile_index + LUA_INDEX_OFFSET ]
 
-	for i = #entities.enemies, 1, -1 do
-		entities.enemies[i]:update(delta_time, entities.player, game_speed)
-		if check_collision(entities.enemies[i], entities.player) then
-			table.remove(entities.enemies, i)
-		end
-	end
-
 	if editor_mode == false then
 		for i = #game_coins, 1, -1 do
 		local collectible = game_coins[i]
@@ -154,17 +146,11 @@ function updateEditorItem(e, q, last_tile_change, tile_index)
 end
 
 function love.draw()
-	entities_drawn = 0
-	-- Draw Room
-	--love.graphics.draw(background)
 	if editor_mode then
 		render_screen_editor()
 	else
 		render_screen()
 	end
-
-	love.graphics.translate(0,0)
-
 	if editor_mode == false then
 		Score:drawTimer()
     	Score:drawScoreCount()
@@ -197,7 +183,6 @@ function render_screen()
 		local collision_block = { position = tile.position, width = tile_kind.width, height = tile_kind.height }
 		if check_collision(collision_block, camera_rectangle) then
 			draw_tile(tile)
-			entities_drawn = entities_drawn + 1
 		end
 	end
 
@@ -210,16 +195,14 @@ function render_screen()
 		local collision_block = { position = collectible.position, width = kind.width, height = kind.height }
 		if check_collision(collision_block, camera_rectangle) then
 			entities.animations[2]:draw(coin_image, collectible.position.x * horisontal_draw_scale, collectible.position.y * vertical_draw_scale, 0, horisontal_draw_scale * kind.scale_x, vertical_draw_scale * kind.scale_y)
-			entities_drawn = entities_drawn + 1
 		end
 	end
 
 	-- Render exit
 
-	entities.animations[3]:draw(exit_image, entities.event_tiles[2].position.x * horisontal_draw_scale, entities.event_tiles[2].position.y * vertical_draw_scale, 0, entities.editorTypes[5].scale_x * horisontal_draw_scale, entities.editorTypes[5].scale_y * vertical_draw_scale)
+	entities.animations[3]:draw(exit_image, entities.event_tiles[2].position.x * horisontal_draw_scale, entities.event_tiles[2].position.y * vertical_draw_scale, 0, entities.editorTypes[8].scale_x * horisontal_draw_scale, entities.editorTypes[8].scale_y * vertical_draw_scale)
 
 	-- Draw player
-	draw_rect(entities.player)
 	draw_sprite(entities.player)
 
 	-- Draw enemies
@@ -245,25 +228,25 @@ function render_screen_editor()
 	for i = #entities.tiles, 1, -1 do
 		local tile = entities.tiles[i];
 		draw_tile(tile)
-		entities_drawn = entities_drawn + 1
 	end
 
 	for i = #entities.collectibles, 1, -1 do
 		local collectible = entities.collectibles[i];
 		local kind = entities.editorTypes[collectible.kind]
 		entities.animations[2]:draw(coin_image, collectible.position.x * horisontal_draw_scale, collectible.position.y * vertical_draw_scale, 0, horisontal_draw_scale * kind.scale_x, vertical_draw_scale * kind.scale_y)
-		entities_drawn = entities_drawn + 1
 	end
 
 	for i = #entities.event_tiles, 1, -1 do
 		if entities.event_tiles[i] ~= nil then -- HACK
 			local event = entities.event_tiles[i];
 			draw_tile(event)
-			entities_drawn = entities_drawn + 1
 		end
 	end
+	-- Draw cursors
+	local x, y = love.mouse.getX() / horisontal_draw_scale, love.mouse.getY() / vertical_draw_scale
+	draw_rect( { position = { x = x, y = y}, width = 5, height = 5  })
+	entities.animations[1]:draw(cursor_image, (x - (x % 32)) * horisontal_draw_scale, (y - (y % 32)) * vertical_draw_scale, 0, horisontal_draw_scale, vertical_draw_scale)
 
-	-- Draw cursor
 
 	-- Draw Items
 
@@ -275,7 +258,6 @@ function render_screen_editor()
 		else 
 			draw_sprite(enemy)
 		end
-		entities_drawn = entities_drawn + 1
 	end
 
 
@@ -283,8 +265,6 @@ function render_screen_editor()
 	-- Render current block
 	love.graphics.draw(tile_frame.sprite.sprite, 10 * horisontal_draw_scale, 170 * vertical_draw_scale, 0, tile_frame.scale_x * horisontal_draw_scale, tile_frame.scale_y * vertical_draw_scale)
 	love.graphics.draw(entities.editorTypes[tile_index + LUA_INDEX_OFFSET].sprite.sprite, 22 * horisontal_draw_scale, 182 * vertical_draw_scale, 0, entities.editorTypes[tile_index + LUA_INDEX_OFFSET].scale_x * horisontal_draw_scale, entities.editorTypes[tile_index + LUA_INDEX_OFFSET].scale_y * vertical_draw_scale)
-
-	draw_rect( { position = { x = love.mouse.getX() / horisontal_draw_scale, y = love.mouse.getY() / vertical_draw_scale}, width = 5, height = 5  })
 
 	if love.keyboard.isDown("escape") then
 		save_level("with_collectibles.lvl")
@@ -326,7 +306,6 @@ function print_DEBUG()
 	love.graphics.printf("can jump: " .. tostring(entities.player.can_jump), 20, 60, 1000, "left")
 	love.graphics.printf("is jumping: " .. tostring(entities.player.is_jumping), 20, 70, 1000, "left")
 	love.graphics.printf("Memory actually used (in kB): " .. memory_usage, 20, 80, 1000, "left")
-	love.graphics.printf("Entities drawn " .. entities_drawn, 20, 90, 1000, "left")
 	if keyboard_or_controller then
 		love.graphics.printf("Arrow keys for movement, space to jump", screen.width - 255, 10, 1000, "left")
 	else

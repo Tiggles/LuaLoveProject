@@ -78,7 +78,7 @@ end
 
 function init_entities()
     entities = {
-        player = Player:new(20, 20, 20, 20, "Assets/BILD1321.png", 0.013, 0.013),
+        player = Player:new(20, 20, 20, 20, "Assets/Character1.png", 0.5, 0.25),
         enemies = {},
         blocks = {},
         animations = {},
@@ -156,7 +156,6 @@ function compare(a, b)
     if a.position.y < b.position.y then return true end
     if a.position.y > b.position.y then return false end
     return a.position.x < b.position.x
-     
 end
 
 function save_level(filename)
