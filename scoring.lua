@@ -43,7 +43,9 @@ end
 
 function Score:initialize()
 	if self.initialized then 
-		return -- TODO: Reset values
+		self:resetMultiplier()
+		self:resetScoreCount()
+		self:resetTimer()
 	else 
 		self:setupTimer()
 		self:setupScoreCount()
@@ -140,6 +142,15 @@ end
 
 function Score:resetMultiplier()
 	self.score_count.multiplier.multiplier = self.score_count.multiplier.minimum_multiplier
+end
+
+function Score:resetTimer()
+	self.timer.current_time = 0
+end
+
+function Score:resetScoreCount()
+	self:updateScoreCount()
+	self.score_count.current_score = 0
 end
 
 function Score:updateScoreCount()
