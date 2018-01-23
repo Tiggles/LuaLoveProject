@@ -42,11 +42,14 @@ local function poll_score(score_table)
 end
 
 function Score:initialize()
-	if self.initialized then return end
-	self:setupTimer()
-	self:setupScoreCount()
-	self:setupMultiplier()
-	self.initialized = true
+	if self.initialized then 
+		return -- TODO: Reset values
+	else 
+		self:setupTimer()
+		self:setupScoreCount()
+		self:setupMultiplier()
+		self.initialized = true
+	end
 end
 
 
