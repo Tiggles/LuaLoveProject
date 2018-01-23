@@ -85,11 +85,11 @@ function Player:handleMovementLogic(entities)
 	self.velocity.speedX = math.max(math.min(self.velocity.speedX, self.velocity.max), self.velocity.min)
 	self.velocity.speedY = math.max(math.min(self.velocity.speedY, self.velocity.max), self.velocity.min)
 
-	local world = bump.newWorld()
+	local world = bump.newWorld() -- Init each time is overkill. Return and pass around
 
 	local player = { name = "Player"}
 
-	world:add( player, self.position.x, self.position.y, self.width, self.height)
+	world:add(player, self.position.x, self.position.y, self.width, self.height)
 
 	for i = 1, #entities.tiles, 1 do
 		tile = entities.tiles[i]

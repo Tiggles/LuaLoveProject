@@ -92,7 +92,7 @@ function love.update(delta_time)
 	if keyboard_or_controller then
 		local exploding, time_rising = entities.player:handleInput(delta_time, game_speed, 0)
 		Score:updateTimer(delta_time)
-		Score:updateScoreCount(delta_time)
+		Score:updateScoreCount()
 	else
 		mouse_x, mouse_y, left_mouse_button_pressed, right_mouse_button_pressed, q, e = entities.player:handleInput(delta_time, game_speed, 2)
 		entities.player.position.x = mouse_x / horisontal_draw_scale
@@ -103,28 +103,24 @@ function love.update(delta_time)
 
 	entities.player:handleMovementLogic(entities)
 
-	if q and love.timer.getTime() > last_tile_change + 0.2 then
-		last_tile_change = love.timer.getTime()
-		tile_index = (tile_index - 1) % #entities.editorTypes;
-	end
-	if e and love.timer.getTime() > last_tile_change + 0.2 then
-		last_tile_change = love.timer.getTime()
-		tile_index = (tile_index + 1) % #entities.editorTypes;
+	
+	if q or e then
+		tile_index, last_tile_change = updateEditorItem(q, e, last_tile_change, tile_index)
 	end
 
 	current_item = entities.editorTypes[ tile_index + LUA_INDEX_OFFSET ]
 
 	for i = #entities.enemies, 1, -1 do
 		entities.enemies[i]:update(delta_time, entities.player, game_speed)
-		--if check_collision(entities.enemies[i], entities.player) then
-		--	table.remove(entities.enemies, i)
-		--end
+		if check_collision(entities.enemies[i], entities.player) then
+			table.remove(entities.enemies, i)
+		end
 	end
 
-	if keyboard == false then
+	if editor_mode == false then
 		for i = #game_coins, 1, -1 do
-			local collectible = game_coins[i]
-			local kind = entities.editorTypes[collectible.kind]
+		local collectible = game_coins[i]
+		local kind = entities.editorTypes[collectible.kind]
 			if (check_collision( { position = collectible.position, width = kind.width, height = kind.height }, entities.player)) then
 				table.remove(game_coins, i)
 				Score:addToMultiplier(1)
@@ -144,6 +140,18 @@ end
 
 memory_usage = 0
 last_memory_check = love.timer.getTime()
+
+function updateEditorItem(e, q, last_tile_change, tile_index)
+	if love.timer.getTime() > last_tile_change + 0.2 then
+		last_tile_change = love.timer.getTime()
+		if q then
+			tile_index = (tile_index - 1) % #entities.editorTypes
+		elseif e then -- should always be case if first one evaluates to false?
+			tile_index = (tile_index + 1) % #entities.editorTypes
+		end
+	end
+	return tile_index, last_tile_change;
+end
 
 function love.draw()
 	entities_drawn = 0
@@ -289,9 +297,7 @@ function render_screen_editor()
 		entities.player.position.x = entities.event_tiles[1].position.x
 		entities.player.position.y = entities.event_tiles[1].position.y
 		game_coins = table_clone(entities.collectibles)
-		Score:setupTimer()
-		Score:setupScoreCount()
-		Score:setupMultiplier()
+		Score:initialize()
 		keyboard_or_controller = true
 	end
 end
@@ -331,6 +337,5 @@ function print_DEBUG()
 		memory_usage = collectgarbage("count")
 		last_memory_check = love.timer.getTime()
 	end
-	love.graphics.printf("Collected coins " .. entities.player.collected_coins, 20, 100, 1000, "left")
 	love.graphics.printf("Current multiplier: " .. entities.player.currentMultiplier, 20, 110, 1000, "left")
 end

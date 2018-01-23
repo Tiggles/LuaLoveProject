@@ -1,5 +1,6 @@
 
 Score = {
+	initialized = false,
 	timer = {
 		active = true,
 		font_size = 26,
@@ -38,6 +39,14 @@ local function poll_score(score_table)
 	else
 		return  nil
 	end
+end
+
+function Score:initialize()
+	if self.initialized then return end
+	self:setupTimer()
+	self:setupScoreCount()
+	self:setupMultiplier()
+	self.initialized = true
 end
 
 
@@ -94,7 +103,6 @@ function Score:getCurrentGameTime()
 end
 
 function Score:drawTimer()
-
 	local old_font = love.graphics.getFont()
 	love.graphics.setFont(self.timer.font)
 	love.graphics.printf(self.timer.prefix .. string.format("%02.1f", self.timer.current_time), self.timer.position.x, 
@@ -131,7 +139,7 @@ function Score:resetMultiplier()
 	self.score_count.multiplier.multiplier = self.score_count.multiplier.minimum_multiplier
 end
 
-function Score:updateScoreCount(dt)
+function Score:updateScoreCount()
 	local point = poll_score(self)
 	while point ~= nil do
 		self.score_count.current_score = self.score_count.current_score + point 
