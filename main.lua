@@ -1,5 +1,6 @@
 require "room"
 require "enemies"
+require "editor"
 require "player"
 require "items"
 require "helper_functions"
@@ -22,6 +23,7 @@ horisontal_draw_scale = 1
 LUA_INDEX_OFFSET = 1
 tile_index = 0
 debug = true
+editor = Editor:new()
 
 -- Value Initialization
 game_speed = 1
@@ -39,14 +41,14 @@ function love.load(args)
     CannonFodder:new(1, 1)
 
 	hide_cursor()
-	table.insert(entities.editorTypes, TileType:newType("Assets/grass1.png", 1, 1, 32, 32, false))
-	table.insert(entities.editorTypes, TileType:newType("Assets/grass2.png", 1, 1, 32, 32, false))
-	table.insert(entities.editorTypes, TileType:newType("Assets/bricksred.png", 1, 1, 32, 32, true))
-	table.insert(entities.editorTypes, TileType:newType("Assets/bricksgray.png", 1, 1, 32, 32, true))
-	table.insert(entities.editorTypes, TileType:newType("Assets/BILD1321.png", 0.02, 0.02, 32, 32, false))
-	table.insert(entities.editorTypes, CollectibleType:newType("Assets/coin.png", 0.5, 0.5, 32, 32, false))
-	table.insert(entities.editorTypes, EventType:newType("Assets/start.png", 0.5, 0.5, 32, 32, false, kinds.start))
-	table.insert(entities.editorTypes, EventType:newType("Assets/end.png", 0.5, 0.5, 32, 32, false, kinds.finish))
+	editor:addTileType("Assets/grass1.png", 1, 1, 32, 32, false)
+	editor:addTileType("Assets/grass2.png", 1, 1, 32, 32, false)
+	editor:addTileType("Assets/bricksred.png", 1, 1, 32, 32, true)
+	editor:addTileType("Assets/bricksgray.png", 1, 1, 32, 32, true)
+	editor:addTileType("Assets/BILD1321.png", 0.02, 0.02, 32, 32, false)
+	editor:addCollectibleType("Assets/coin.png", 0.5, 0.5, 32, 32, false))
+	editor:addEventType("Assets/start.png", 0.5, 0.5, 32, 32, false, kinds.start))
+	editor:addEventType("Assets/end.png", 0.5, 0.5, 32, 32, false, kinds.finish))
 	table.insert(entities.editorTypes, EnemyType:newType("Assets/cannonfodder.png", 0.5, 0.5, 32, 32))
 
 	love.graphics.setBackgroundColor( 65, 75, 25 )
