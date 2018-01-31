@@ -49,7 +49,7 @@ function love.load(args)
 	editor:addCollectibleType("Assets/coin.png", 0.5, 0.5, 32, 32, false)
 	editor:addEventType("Assets/start.png", 0.5, 0.5, 32, 32, false, kinds.start)
 	editor:addEventType("Assets/end.png", 0.5, 0.5, 32, 32, false, kinds.finish)
-	table.insert(entities.editorTypes, EnemyType:newType("Assets/cannonfodder.png", 0.5, 0.5, 32, 32))
+	editor:addActorType("Assets/cannonfodder.png", 0.5, 0.5, 32, 32)
 
 	love.graphics.setBackgroundColor( 65, 75, 25 )
 

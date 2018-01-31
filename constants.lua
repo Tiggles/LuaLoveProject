@@ -16,7 +16,8 @@ return {
 	editor_constants = {
 		tile = 1,
 		collectible = 2,
-		event = 3
+		event = 3,
+		actor = 4,
 	},
 
 	states = {

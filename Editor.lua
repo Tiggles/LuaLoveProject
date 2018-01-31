@@ -11,18 +11,18 @@ function Editor:new()
 	return setmetatable(editor, self)
 end
 
-function Editor:addTileType(path, scale_x, scale_y, width, height, is_blocking)
-    table.insert(self.tiles, TileType:newType(path, scale_x, scale_y, width, height, is_blocking))
+function Editor:addTileType(spritePath, scale_x, scale_y, width, height, is_blocking)
+    table.insert(self.tiles, TileType:newType(spritePath, scale_x, scale_y, width, height, is_blocking))
 end
 
-function Editor:addCollectibleType(path, scale_x, scale_y, width, height, is_blocking)
-    table.insert(self.collectibles, CollectibleType:newType(path, scale_x, scale_y, height, is_blocking))
+function Editor:addCollectibleType(spritePath, scale_x, scale_y, width, height, is_blocking)
+    table.insert(self.collectibles, CollectibleType:newType(spritePath, scale_x, scale_y, height, is_blocking))
 end
 
-function Editor:addEventType(path, scale_x, scale_y, width, height, is_blocking)
-    table.insert(self.events, EventType:newType(path, scale_x, scale_y, width, height, is_blocking))
+function Editor:addEventType(spritePath, scale_x, scale_y, width, height, is_blocking)
+    table.insert(self.events, EventType:newType(spritePath, scale_x, scale_y, width, height, is_blocking))
 end
 
-function Editor:addActorType(path, scale_x, scale_y, width, height, is_friendly)
-
+function Editor:addActorType(spritePath, scale_x, scale_y, width, height, is_friendly)
+    table.insert(self.actors, ActorType:newType(spritePath, scale_x, scale_y, width, height, is_friendly))
 end

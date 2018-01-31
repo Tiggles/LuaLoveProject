@@ -4,6 +4,7 @@ require "sprite"
 constants = require "constants"
 
 enemy_counter = 0
+
 Grunt = {}
 
 function Grunt:new(x, y)
@@ -85,8 +86,23 @@ function EnemyType:newType(path, scale_x, scale_y, width, height)
 		scale_y = scale_y,
 		width = width,
 		height = height,
-		kind_type_t = constants.editor_constants.asd
+		kind_type = constants.editor_constants.asd
 	}
 	self.__index = self
 	return setmetatable(new_enemyType, self)
+end
+
+ActorType = {}
+
+function ActorType:newType(spritePath, scale_x, scale_y, width, height)
+	new_actorType = {
+		sprite = Sprite:new(spritePath, scale_x, scale_y),
+		scale_x = scale_x,
+		scale_y = scale_y,
+		width = width,
+		height = height,
+		kind_type = constants.editor_constants.actor
+	}
+	self.__index = self
+	return setmetatable(new_actorType, self)
 end
