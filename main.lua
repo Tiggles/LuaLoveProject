@@ -14,7 +14,7 @@ require "scoring"
 
 screen = { width = 800, height = 480, flags = nil}
 love.window.setMode( screen.width, screen.height, { resizable = true, vsync = true, minwidth = 800, minheight= 480 , fullscreen = false })
-love.window.setTitle( "Generic Planet Mover and Attractor" )
+love.window.setTitle( "Editor" )
 keyboard_or_controller = false
 editor_mode = true
 last_tile_change = love.timer.getTime()
