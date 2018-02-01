@@ -106,7 +106,10 @@ function love.update(delta_time)
 
 	
 	if q or e then
-		tile_index, last_tile_change = updateEditorItem(q, e, last_tile_change, tile_index)
+		local direction = 0
+		if q then direction = direction - 1	end
+		if e then direction = direction + 1 end
+		editor:changeIndex(direction)
 	end
 
 	current_item = entities.editorTypes[ tile_index + LUA_INDEX_OFFSET ]
@@ -134,18 +137,6 @@ end
 
 memory_usage = 0
 last_memory_check = love.timer.getTime()
-
-function updateEditorItem(e, q, last_tile_change, tile_index)
-	if love.timer.getTime() > last_tile_change + 0.2 then
-		last_tile_change = love.timer.getTime()
-		if q then
-			tile_index = (tile_index - 1) % #entities.editorTypes
-		elseif e then -- should always be case if first one evaluates to false?
-			tile_index = (tile_index + 1) % #entities.editorTypes
-		end
-	end
-	return tile_index, last_tile_change;
-end
 
 function love.draw()
 	if editor_mode then

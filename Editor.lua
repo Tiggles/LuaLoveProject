@@ -14,7 +14,8 @@ function Editor:new()
         tiles = {},
         collectibles = {},
         events = {},
-        actors = {}
+        actors = {},
+        nextAllowedChange = love.timer.getTime()
     }
 	self.__index = self
 	return setmetatable(editor, self)
@@ -49,21 +50,27 @@ function Editor:getCurrentTile()
 end
 
 function Editor:changeType(direction)
-    self.currentType = self.currentType + direction % TYPE_COUNT
+    if self.nextAllowedChange < love.timer.getTime() then
+        self.currentType = self.currentType + direction % TYPE_COUNT
+        self.nextAllowedChange = love.timer.getTime() + 0.2
+    end
 end
 
 function Editor:changeIndex(direction)
-    self.currentIndex = (self.currentIndex + direction) % self:getTypeCount()
+    if self.nextAllowedChange < love.timer.getTime() then
+        self.currentIndex = (self.currentIndex + direction) % self:getTypeCount()
+        self.nextAllowedChange = love.timer.getTime() + 0.2
+    end
 end
 
 function Editor:getTypeCount()
-    if 0 == self.currentType - LUA_INDEX_OFFSET then
+    if 0 == self.currentType then
         return #self.tiles
-    elseif 1 == self.currentType - LUA_INDEX_OFFSET then
+    elseif 1 == self.currentType then
         return #self.collectibles
-    elseif 2 == self.currentType - LUA_INDEX_OFFSET then
+    elseif 2 == self.currentType then
         return #self.events
-    elseif 3 == self.currentType - LUA_INDEX_OFFSET then
+    elseif 3 == self.currentType then
         return #self.actors
     end
     print("fault")
