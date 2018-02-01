@@ -37,14 +37,14 @@ function Editor:addActorType(spritePath, scale_x, scale_y, width, height, is_fri
 end
 
 function Editor:getCurrentTile()
-    if 0 == self.currentType - LUA_INDEX_OFFSET then
-        return self.tiles[self.currentIndex]
-    elseif 1 == self.currentType - LUA_INDEX_OFFSET then
-        return self.collectibles[self.currentIndex]
-    elseif 2 == self.currentType - LUA_INDEX_OFFSET then
-        return self.events[self.currentIndex]
-    elseif 3 == self.currentType - LUA_INDEX_OFFSET then
-        return self.actors[self.currentIndex]
+    if 0 == self.currentType then
+        return self.tiles[self.currentIndex + LUA_INDEX_OFFSET]
+    elseif 1 == self.currentType then
+        return self.collectibles[self.currentIndex + LUA_INDEX_OFFSET]
+    elseif 2 == self.currentType then
+        return self.events[self.currentIndex + LUA_INDEX_OFFSET]
+    elseif 3 == self.currentType then
+        return self.actors[self.currentIndex + LUA_INDEX_OFFSET]
     end
 end
 

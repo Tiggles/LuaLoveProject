@@ -26,7 +26,7 @@ debug = true
 editor = Editor:new()
 
 -- Value Initialization
-game_speed = 1
+game_speed = 1.0
 in_focus = false
 tile_frame = TileType:newType("Assets/tileframe.png", 0.8, 0.8, 70, 70, false)
 
@@ -265,8 +265,9 @@ function render_screen_editor()
 
 
 	-- Render current block
+	local currentEditorTile = editor:getCurrentTile()
 	love.graphics.draw(tile_frame.sprite.sprite, 10 * horisontal_draw_scale, 170 * vertical_draw_scale, 0, tile_frame.scale_x * horisontal_draw_scale, tile_frame.scale_y * vertical_draw_scale)
-	love.graphics.draw(entities.editorTypes[tile_index + LUA_INDEX_OFFSET].sprite.sprite, 22 * horisontal_draw_scale, 182 * vertical_draw_scale, 0, entities.editorTypes[tile_index + LUA_INDEX_OFFSET].scale_x * horisontal_draw_scale, entities.editorTypes[tile_index + LUA_INDEX_OFFSET].scale_y * vertical_draw_scale)
+	love.graphics.draw(currentEditorTile.sprite.sprite, 22 * horisontal_draw_scale, 182 * vertical_draw_scale, 0, currentEditorTile.scale_x * horisontal_draw_scale, currentEditorTile.scale_y * vertical_draw_scale)
 
 	if love.keyboard.isDown("escape") then
 		save_level("with_collectibles.lvl")
