@@ -38,7 +38,6 @@ end
 function love.load(args)
     entities = init_entities()
     read_level(args[2])
-    CannonFodder:new(1, 1)
 
 	hide_cursor()
 	editor:addTileType("Assets/grass1.png", 1, 1, 32, 32, false)
@@ -87,7 +86,6 @@ end
 function love.update(delta_time)
 	local mouse_x, mouse_y, left_mouse_button_pressed, right_mouse_button_pressed
 	game_speed = update_gameSpeed(game_speed, delta_time, time_rising)
-
 	if not in_focus then return end
 
 	if keyboard_or_controller then
@@ -104,13 +102,10 @@ function love.update(delta_time)
 
 	entities.player:handleMovementLogic(entities)
 
-	
-	if q or e then
-		local direction = 0
-		if q then direction = direction - 1	end
-		if e then direction = direction + 1 end
-		editor:changeIndex(direction)
-	end
+	local direction = 0
+	if q then direction = direction - 1	end
+	if e then direction = direction + 1 end
+	editor:changeIndex(direction)
 
 	current_item = entities.editorTypes[ tile_index + LUA_INDEX_OFFSET ]
 

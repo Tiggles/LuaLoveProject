@@ -50,17 +50,23 @@ function Editor:getCurrentTile()
 end
 
 function Editor:changeType(direction)
-    if self.nextAllowedChange < love.timer.getTime() then
-        self.currentType = self.currentType + direction % TYPE_COUNT
-        self.nextAllowedChange = love.timer.getTime() + 0.2
-    end
+    if not self:allowedChange() then return end
+    self.currentType = self.currentType + direction % TYPE_COUNT
+    self:updateAllowedChange()
 end
 
 function Editor:changeIndex(direction)
-    if self.nextAllowedChange < love.timer.getTime() then
-        self.currentIndex = (self.currentIndex + direction) % self:getTypeCount()
-        self.nextAllowedChange = love.timer.getTime() + 0.2
-    end
+    if not self:allowedChange() then return end
+    self.currentIndex = (self.currentIndex + direction) % self:getTypeCount()
+    self:updateAllowedChange()
+end
+
+function Editor:allowedChange()
+    return self.nextAllowedChange < love.timer.getTime()
+end
+
+function Editor:updateAllowedChange()
+    self.nextAllowedChange = love.timer.getTime() + 0.2
 end
 
 function Editor:getTypeCount()
@@ -75,4 +81,8 @@ function Editor:getTypeCount()
     end
     print("fault")
     return "FAULT"
+end
+
+function Editor:update()
+
 end
