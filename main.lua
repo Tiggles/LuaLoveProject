@@ -77,7 +77,6 @@ end
 function love.update(delta_time)
 	if not in_focus then return end
 	editor_update(delta_time, editor)
-	local mouse_x, mouse_y, left_mouse_button_pressed, right_mouse_button_pressed
 	game_speed = update_gameSpeed(game_speed, delta_time, time_rising)
 	
 	if keyboard_or_controller then
@@ -89,8 +88,6 @@ function love.update(delta_time)
 		entities.player.position.x = mouse_x / horisontal_draw_scale
 		entities.player.position.y = mouse_y / vertical_draw_scale
 	end
-
-	handle_mouse_editor(mouse_x, mouse_y, left_mouse_button_pressed, right_mouse_button_pressed)
 
 	entities.player:handleMovementLogic(entities)
 
