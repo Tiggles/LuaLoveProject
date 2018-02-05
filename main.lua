@@ -30,16 +30,11 @@ game_speed = 1.0
 in_focus = false
 tile_frame = TileType:newType("Assets/tileframe.png", 0.8, 0.8, 70, 70, false)
 
-function hide_cursor()
-	cursor = love.mouse.newCursor("Assets/empty_cursor.png")
-	love.mouse.setCursor(cursor)
-end
-
 function love.load(args)
     entities = init_entities()
     read_level(args[2])
 
-	hide_cursor()
+	
 	editor:addTileType("Assets/grass1.png", 1, 1, 32, 32, false)
 	editor:addTileType("Assets/grass2.png", 1, 1, 32, 32, false)
 	editor:addTileType("Assets/bricksred.png", 1, 1, 32, 32, true)
@@ -51,10 +46,6 @@ function love.load(args)
 	editor:addActorType("Assets/cannonfodder.png", 0.5, 0.5, 32, 32)
 
 	love.graphics.setBackgroundColor( 65, 75, 25 )
-
-	cursor_image = love.graphics.newImage("Assets/Cursor.png")
-	local g = anim8.newGrid(32, 32, cursor_image:getWidth(), cursor_image:getHeight())
-	table.insert(entities.animations, anim8.newAnimation(g('1-2', 1), 0.5))
 
 	coin_image = love.graphics.newImage("Assets/coin.png")
 	local h = anim8.newGrid(64, 64, coin_image:getWidth(), coin_image:getHeight())
@@ -84,10 +75,11 @@ function love.resize(width, height)
 end
 
 function love.update(delta_time)
+	if not in_focus then return end
+	editor_update(delta_time, editor)
 	local mouse_x, mouse_y, left_mouse_button_pressed, right_mouse_button_pressed
 	game_speed = update_gameSpeed(game_speed, delta_time, time_rising)
-	if not in_focus then return end
-
+	
 	if keyboard_or_controller then
 		local exploding, time_rising = entities.player:handleInput(delta_time, game_speed, 0)
 		Score:updateTimer(delta_time)
@@ -135,7 +127,7 @@ last_memory_check = love.timer.getTime()
 
 function love.draw()
 	if editor_mode then
-		render_screen_editor()
+		editor_draw(editor)
 	else
 		render_screen()
 	end
@@ -211,65 +203,6 @@ function render_screen()
 	love.graphics.translate(x_offset * horisontal_draw_scale, y_offset * vertical_draw_scale)
 end
 
-function render_screen_editor()
-	-- Draw blocks
-	for i = #entities.tiles, 1, -1 do
-		local tile = entities.tiles[i];
-		draw_tile(tile)
-	end
-
-	for i = #entities.collectibles, 1, -1 do
-		local collectible = entities.collectibles[i];
-		local kind = entities.editorTypes[collectible.kind]
-		entities.animations[2]:draw(coin_image, collectible.position.x * horisontal_draw_scale, collectible.position.y * vertical_draw_scale, 0, horisontal_draw_scale * kind.scale_x, vertical_draw_scale * kind.scale_y)
-	end
-
-	for i = #entities.event_tiles, 1, -1 do
-		if entities.event_tiles[i] ~= nil then -- HACK
-			local event = entities.event_tiles[i];
-			draw_tile(event)
-		end
-	end
-	-- Draw cursors
-	local x, y = love.mouse.getX() / horisontal_draw_scale, love.mouse.getY() / vertical_draw_scale
-	draw_rect( { position = { x = x, y = y}, width = 5, height = 5  })
-	entities.animations[1]:draw(cursor_image, (x - (x % 32)) * horisontal_draw_scale, (y - (y % 32)) * vertical_draw_scale, 0, horisontal_draw_scale, vertical_draw_scale)
-
-
-	-- Draw Items
-
-	-- Draw enemies
-	for i = #entities.enemies, 1, -1 do
-		local enemy = entities.enemies[i]
-		if enemy.sprite == nil then
-			draw_rect(enemy)
-		else 
-			draw_sprite(enemy)
-		end
-	end
-
-
-
-	-- Render current block
-	local currentEditorTile = editor:getCurrentTile()
-	love.graphics.draw(tile_frame.sprite.sprite, 10 * horisontal_draw_scale, 170 * vertical_draw_scale, 0, tile_frame.scale_x * horisontal_draw_scale, tile_frame.scale_y * vertical_draw_scale)
-	love.graphics.draw(currentEditorTile.sprite.sprite, 22 * horisontal_draw_scale, 182 * vertical_draw_scale, 0, currentEditorTile.scale_x * horisontal_draw_scale, currentEditorTile.scale_y * vertical_draw_scale)
-
-	if love.keyboard.isDown("escape") then
-		save_level("with_collectibles.lvl")
-		love.event.quit();
-	end
-
-	if love.keyboard.isDown("i") and next_rendering_switch < love.timer.getTime() and #entities.event_tiles == 2 then
-		editor_mode = not editor_mode
-		next_rendering_switch = love.timer.getTime() + 1
-		entities.player.position.x = entities.event_tiles[1].position.x
-		entities.player.position.y = entities.event_tiles[1].position.y
-		game_coins = table_clone(entities.collectibles)
-		Score:initialize()
-		keyboard_or_controller = true
-	end
-end
 
 function draw_tile(tile)
 	love.graphics.draw(entities.editorTypes[tile.kind].sprite.sprite, (tile.position.x) * horisontal_draw_scale, (tile.position.y) * vertical_draw_scale, 0, entities.editorTypes[tile.kind].scale_x * horisontal_draw_scale, entities.editorTypes[tile.kind].scale_y * vertical_draw_scale)
