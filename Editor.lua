@@ -102,70 +102,80 @@ end
 function editor_update(dt, editor)
     editor.cursorAnimation:update(dt)
     local mouse_x, mouse_y, left_mouse_button_pressed, right_mouse_button_pressed
-    handle_mouse_editor(mouse_x, mouse_y, left_mouse_button_pressed, right_mouse_button_pressed)
+    editor:handleMouseEditor()
 end
 
-function handle_mouse_editor(left, right)
-    local x, y = love.mouse.getX() / horisontal_draw_scale, love.mouse.getY() / vertical_draw_scale
-    local left, right = love.mouse.isDown(0), love.mouse.isDown(1)
-    if left and next_block_interaction < love.timer.getTime() then
-        local occupied_space = false
-        for i = 1, #entities.tiles do
-            local tile = entities.tiles[i]
-            local kind = entities.editorTypes[tile.kind]
-            local collision_block = { position = tile.position, width = kind.width, height = kind.height }
-            if check_collision(collision_block, { position = { x = x, y = y }, width = 1, height = 1 }) then
-                occupied_space = true
-            end
+function Editor:checkIfTileIsOccupied()
+    local tile = self:getCurrentTile()
+    for i = 1, #self.level.tiles do
+        local tile = self.level.tiles[i]
+        local collision_block = { position = tile.position, width = kind.width, height = kind.height }
+        if check_collision(collision_block, { position = { x = x, y = y }, width = 1, height = 1 }) then
+            return true
         end
+    end
 
-        for i = 1, #entities.collectibles do
-            local collectible = entities.collectibles[i]
-            local kind = entities.editorTypes[collectible.kind]
-            local collision_block = { position = collectible.position, width = kind.width, height = kind.height }
-            if check_collision(collision_block, { position = { x = x, y = y }, width = 1, height = 1 }) then
-                occupied_space = true
-            end
+    local kind = entities.editorTypes[collectible.kind]
+    for i = 1, #entities.collectibles do
+        local collectible = editor.level.collectibles[i]
+        local collision_block = { position = collectible.position, width = kind.width, height = kind.height }
+        if check_collision(collision_block, { position = { x = x, y = y }, width = 1, height = 1 }) then
+            return true
         end
+    end
+end
+
+function Editor:insertBlock(x,y)
+    local editor_type = editor:getCurrentTile()
+    if editor_type.kind_type == constants.editor_constants.tile then
+        table.insert(entities.tiles, Tile:newTile((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET))
+        table.sort( entities.tiles, compare )
+    elseif editor_type.kind_type == constants.editor_constants.collectible then
+        table.insert(entities.collectibles, Collectible:newCollectible((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET))
+        table.sort( entities.collectibles, compare )
+    elseif editor_type.kind_type == constants.editor_constants.event then
+        if editor_type.event_type == kinds.start then
+            entities.event_tiles[kinds.start] = Event:newEvent((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET)
+        elseif editor_type.event_type == kinds.finish then
+            entities.event_tiles[kinds.finish] = Event:newEvent((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET)
+        end
+    end
+    self.nextAllowedChange = love.timer.getTime() + .1
+end
+
+function Editor:handleMouseEditor()
+    local x, y = love.mouse.getX() / horisontal_draw_scale, love.mouse.getY() / vertical_draw_scale
+    local left, right = love.mouse.isDown(1), love.mouse.isDown(2)
+    if left and next_block_interaction < love.timer.getTime() then
+        local occupied_space = self:checkIfTileIsOccupied()
         if not occupied_space then
-            local editor_type = entities.editorTypes[ tile_index + LUA_INDEX_OFFSET ]
-            if editor_type.kind_type == constants.editor_constants.tile then
-                table.insert(entities.tiles, Tile:newTile((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET))
-                table.sort( entities.tiles, compare )
-            elseif editor_type.kind_type == constants.editor_constants.collectible then
-                table.insert(entities.collectibles, Collectible:newCollectible((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET))
-                table.sort( entities.collectibles, compare )
-            elseif editor_type.kind_type == constants.editor_constants.event then
-                if editor_type.event_type == kinds.start then
-                    entities.event_tiles[kinds.start] = Event:newEvent((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET)
-                elseif editor_type.event_type == kinds.finish then
-                    entities.event_tiles[kinds.finish] = Event:newEvent((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET)
-                end
-            end
-            next_block_interaction = love.timer.getTime() + .1
+            self:insertBlock(x, y)
         end
     end
 
     if right and next_block_interaction < love.timer.getTime() then
-        for i = #entities.tiles, 1, -1 do
-            local tile = entities.tiles[i]
-            local kind = entities.editorTypes[tile.kind]
-            if check_collision({ position = tile.position, width = kind.width, height = kind.height }, { position = { x = x, y = y }, width = 1, height = 1 }) then
-                table.remove(entities.tiles, i)
-                return
-            end
-        end
-        for i = #entities.collectibles, 1, -1 do
-            local collectible = entities.collectibles[i]
-            local kind = entities.editorTypes[collectible.kind]
-            if check_collision({ position = collectible.position, width = kind.width, height = kind.height }, { position = { x = x, y = y }, width = 1, height = 1 }) then
-                table.remove(entities.collectibles, i)
-                return
-            end
-        end
+        self:removeBlock(x,y)
     end
 end
 
+function Editor:removeBlock(x,y)
+    for i = #entities.tiles, 1, -1 do
+        local tile = self.tiles[i]
+        local kind = self.editorTypes[tile.kind]
+        if check_collision({ position = tile.position, width = kind.width, height = kind.height }, { position = { x = x, y = y }, width = 1, height = 1 }) then
+            table.remove(self.level.tiles, i)
+            return
+        end
+    end
+    for i = #entities.collectibles, 1, -1 do
+        local collectible = entities.collectibles[i]
+        local kind = entities.editorTypes[collectible.kind]
+        if check_collision({ position = collectible.position, width = kind.width, height = kind.height }, { position = { x = x, y = y }, width = 1, height = 1 }) then
+            table.remove(entities.collectibles, i)
+            return
+        end
+    end
+end
 
 function editor_draw(editor)
     -- Draw blocks
