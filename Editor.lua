@@ -14,6 +14,26 @@ function hide_cursor()
 	love.mouse.setCursor(cursor)
 end
 
+TileValueToNameMap = {}
+
+function TileValueToNameMap:new() 
+    tileMap = {
+        currentIndex = 0,
+        tile = {}
+    }
+    self.__index = self
+    return setmetatable(tileMap, self)
+end
+
+function TileValueToNameMap:insertNewTile(tileName)
+    self.currentIndex = self.currentIndex + 1
+    self.tile[self.currentIndex] = tile
+end
+
+function TileValueToNameMap:getTileFromIndex(index)
+    return self.tile[index]
+end
+
 function Editor:new()
     hide_cursor()
     cursor_image = love.graphics.newImage("Assets/Cursor.png")
@@ -33,6 +53,7 @@ function Editor:new()
             events = {},
             actors = {}
         },
+        tileMap = TileValueToNameMap:new()
     }
 	self.__index = self
 	return setmetatable(editor, self)
