@@ -80,7 +80,7 @@ function love.update(delta_time)
 	update(delta_time, editor)
 	--game_speed = update_gameSpeed(game_speed, delta_time, time_rising)
 	
-	if keyboard_or_controller then
+	--[[if keyboard_or_controller then
 		local exploding, time_rising = entities.player:handleInput(delta_time, game_speed, 0)
 		Score:updateTimer(delta_time)
 		Score:updateScoreCount()
@@ -88,9 +88,9 @@ function love.update(delta_time)
 		mouse_x, mouse_y, left_mouse_button_pressed, right_mouse_button_pressed, q, e = entities.player:handleInput(delta_time, game_speed, 2)
 		entities.player.position.x = mouse_x / horisontal_draw_scale
 		entities.player.position.y = mouse_y / vertical_draw_scale
-	end
+	end]]--
 
-	entities.player:handleMovementLogic(entities)
+	--entities.player:handleMovementLogic(entities)
 
 	local direction = 0
 	if q then direction = direction - 1	end
@@ -136,7 +136,7 @@ end
 
 
 function draw_tile(tile)
-	love.graphics.draw(entities.editorTypes[tile.kind].sprite.sprite, (tile.position.x) * horisontal_draw_scale, (tile.position.y) * vertical_draw_scale, 0, entities.editorTypes[tile.kind].scale_x * horisontal_draw_scale, entities.editorTypes[tile.kind].scale_y * vertical_draw_scale)
+	love.graphics.draw(tile.sprite.sprite, (tile.position.x) * horisontal_draw_scale, (tile.position.y) * vertical_draw_scale, 0, tile.scale_x * horisontal_draw_scale, tile.scale_y * vertical_draw_scale)
 end
 
 function draw_sprite(entity)

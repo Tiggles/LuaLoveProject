@@ -105,7 +105,7 @@ function editor_update(dt, editor)
     editor:handleMouseEditor()
 end
 
-function Editor:checkIfTileIsOccupied()
+function Editor:queryCoordinate(x, y)
     local tile = self:getCurrentTile()
     for i = 1, #self.level.tiles do
         local tile = self.level.tiles[i]
@@ -114,8 +114,6 @@ function Editor:checkIfTileIsOccupied()
             return true
         end
     end
-
-    local kind = entities.editorTypes[collectible.kind]
     for i = 1, #entities.collectibles do
         local collectible = editor.level.collectibles[i]
         local collision_block = { position = collectible.position, width = kind.width, height = kind.height }
@@ -123,21 +121,22 @@ function Editor:checkIfTileIsOccupied()
             return true
         end
     end
+    return false
 end
 
 function Editor:insertBlock(x,y)
     local editor_type = editor:getCurrentTile()
     if editor_type.kind_type == constants.editor_constants.tile then
-        table.insert(entities.tiles, Tile:newTile((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET))
-        table.sort( entities.tiles, compare )
+        table.insert(self.level.tiles, Tile:newTile((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET))
+        table.sort( self.level.tiles, compare )
     elseif editor_type.kind_type == constants.editor_constants.collectible then
-        table.insert(entities.collectibles, Collectible:newCollectible((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET))
-        table.sort( entities.collectibles, compare )
+        table.insert(self.level.collectibles, Collectible:newCollectible((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET))
+        table.sort( self.level.collectibles, compare )
     elseif editor_type.kind_type == constants.editor_constants.event then
         if editor_type.event_type == kinds.start then
-            entities.event_tiles[kinds.start] = Event:newEvent((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET)
+            self.level.event_tiles[kinds.start] = Event:newEvent((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET)
         elseif editor_type.event_type == kinds.finish then
-            entities.event_tiles[kinds.finish] = Event:newEvent((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET)
+            self.level.event_tiles[kinds.finish] = Event:newEvent((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET)
         end
     end
     self.nextAllowedChange = love.timer.getTime() + .1
@@ -147,7 +146,7 @@ function Editor:handleMouseEditor()
     local x, y = love.mouse.getX() / horisontal_draw_scale, love.mouse.getY() / vertical_draw_scale
     local left, right = love.mouse.isDown(1), love.mouse.isDown(2)
     if left and next_block_interaction < love.timer.getTime() then
-        local occupied_space = self:checkIfTileIsOccupied()
+        local occupied_space = self:queryCoordinate(x, y)
         if not occupied_space then
             self:insertBlock(x, y)
         end
@@ -180,8 +179,9 @@ end
 function editor_draw(editor)
     -- Draw blocks
     for i = #editor.level.tiles, 1, -1 do
-        local tile = entities.tiles[i];
-        draw_tile(tile)
+        local tile = editor.level.tiles[i];
+        local sprite = editor.tiles.
+        draw_tile(tile, sprite, scale_x, scale_y)
     end
 
     for i = #editor.level.collectibles, 1, -1 do
@@ -192,7 +192,7 @@ function editor_draw(editor)
 
     for i = #editor.level.events, 1, -1 do
         if entities.event_tiles[i] ~= nil then -- HACK
-            local event = entities.event_tiles[i];
+            local event = editor.level.event_tiles[i];
             draw_tile(event)
         end
     end
