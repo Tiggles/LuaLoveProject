@@ -18,7 +18,6 @@ TileValueToNameMap = {}
 
 function TileValueToNameMap:new() 
     tileMap = {
-        currentIndex = 0,
         tile = {}
     }
     self.__index = self
@@ -26,7 +25,6 @@ function TileValueToNameMap:new()
 end
 
 function TileValueToNameMap:insertNewTile(tileName)
-    self.currentIndex = self.currentIndex + 1
     self.tile[self.currentIndex] = tile
 end
 
@@ -60,7 +58,8 @@ function Editor:new()
 end
 
 function Editor:addTileType(spritePath, scale_x, scale_y, width, height, is_blocking)
-    table.insert(self.tiles, TileType:newType(spritePath, scale_x, scale_y, width, height, is_blocking))
+    local tile = TileType:newType(spritePath, scale_x, scale_y, width, height, is_blocking)
+    table.insert(self.tiles, tile)
 end
 
 function Editor:addCollectibleType(spritePath, scale_x, scale_y, width, height, is_blocking)
@@ -201,8 +200,8 @@ function editor_draw(editor)
     -- Draw blocks
     for i = #editor.level.tiles, 1, -1 do
         local tile = editor.level.tiles[i];
-        local sprite = editor.tiles.
-        draw_tile(tile, sprite, scale_x, scale_y)
+        --local sprite = editor.tiles[tile.name].sprite;
+        draw_tile(tile)
     end
 
     for i = #editor.level.collectibles, 1, -1 do
