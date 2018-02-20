@@ -25,6 +25,7 @@ LUA_INDEX_OFFSET = 1
 tile_index = 0
 debug = true
 editor = Editor:new()
+print(editor.currentIndex)
 update = editor_update
 
 -- Value Initialization
@@ -45,7 +46,6 @@ function love.load(args)
 	editor:addEventType("Assets/start.png", 0.5, 0.5, 32, 32, false, kinds.start)
 	editor:addEventType("Assets/end.png", 0.5, 0.5, 32, 32, false, kinds.finish)
 	editor:addActorType("Assets/cannonfodder.png", 0.5, 0.5, 32, 32)
-
 	love.graphics.setBackgroundColor( 65, 75, 25 )
 
 	coin_image = love.graphics.newImage("Assets/coin.png")
@@ -59,10 +59,6 @@ function love.load(args)
 
 
 	cannonfodder_image = love.graphics.newImage("Assets/cannonfodder.png")
-
-	current_item = entities.editorTypes[tile_index + LUA_INDEX_OFFSET]
-	next_block_interaction = love.timer.getTime()
-	next_rendering_switch = love.timer.getTime()
 	--save_level("level.example")
 end
 
@@ -91,14 +87,6 @@ function love.update(delta_time)
 	end]]--
 
 	--entities.player:handleMovementLogic(entities)
-
-	local direction = 0
-	if q then direction = direction - 1	end
-	if e then direction = direction + 1 end
-	editor:changeIndex(direction)
-
-	current_item = entities.editorTypes[ tile_index + LUA_INDEX_OFFSET ]
-
 	if editor_mode == false then
 		for i = #game_coins, 1, -1 do
 		local collectible = game_coins[i]
@@ -114,16 +102,13 @@ function love.update(delta_time)
 			editor_mode = true
 		end
 	end
-
-	for i = 1, #entities.animations, 1 do
-		entities.animations[i]:update(delta_time)
-	end
 end
 
 memory_usage = 0
 last_memory_check = love.timer.getTime()
 
 function love.draw()
+	print("draw")
 	if editor_mode then
 		editor_draw(editor)
 	else

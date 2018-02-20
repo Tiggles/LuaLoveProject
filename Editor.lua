@@ -14,22 +14,36 @@ function hide_cursor()
 	love.mouse.setCursor(cursor)
 end
 
-TileValueToNameMap = {}
+TileManager = {}
 
-function TileValueToNameMap:new() 
-    tileMap = {
-        tile = {}
+function TileManager:new()
+    local tilemanager = {
+        tiles = {},
+        tileTypes = {},
+        key = 1
     }
     self.__index = self
-    return setmetatable(tileMap, self)
+    return setmetatable(tilemanager, self)
 end
 
-function TileValueToNameMap:insertNewTile(tileName)
-    self.tile[self.currentIndex] = tile
+function TileManager:getCurrentTile(index)
+    return self.tileTypes[index]
 end
 
-function TileValueToNameMap:getTileFromIndex(index)
-    return self.tile[index]
+function TileManager:placeTiles(key, x, y)
+    table.insert(self.tiles, {key = key, x = x, y = y})
+end
+
+function TileManager:addTileType(tile)
+    tile.key = self.key -- Redundant ?
+    self.key = self.key + 1 -- redundant?
+    table.insert(self.tileTypes, tile)
+end
+
+function TileManager:draw() 
+    for i = 0, #self.tiles do
+    
+    end
 end
 
 function Editor:new()
@@ -51,7 +65,7 @@ function Editor:new()
             events = {},
             actors = {}
         },
-        tileMap = TileValueToNameMap:new()
+        tileManager = TileManager:new()
     }
 	self.__index = self
 	return setmetatable(editor, self)
@@ -59,7 +73,7 @@ end
 
 function Editor:addTileType(spritePath, scale_x, scale_y, width, height, is_blocking)
     local tile = TileType:newType(spritePath, scale_x, scale_y, width, height, is_blocking)
-    table.insert(self.tiles, tile)
+    self.tileManager:addTileType(tile)
 end
 
 function Editor:addCollectibleType(spritePath, scale_x, scale_y, width, height, is_blocking)
@@ -76,7 +90,7 @@ end
 
 function Editor:getCurrentTile()
     if 0 == self.currentType then
-        return self.tiles[self.currentIndex + LUA_INDEX_OFFSET]
+        return self.tileManager:getCurrentTile(self.currentIndex + LUA_INDEX_OFFSET)
     elseif 1 == self.currentType then
         return self.collectibles[self.currentIndex + LUA_INDEX_OFFSET]
     elseif 2 == self.currentType then
@@ -95,6 +109,7 @@ end
 function Editor:changeIndex(direction)
     if not self:allowedChange() then return end
     self.currentIndex = (self.currentIndex + direction) % self:getTypeCount()
+    print(self.currentIndex)
     self:updateAllowedChange()
 end
 
@@ -108,7 +123,7 @@ end
 
 function Editor:getTypeCount()
     if 0 == self.currentType then
-        return #self.tiles
+        return #self.tileManager.tileTypes
     elseif 1 == self.currentType then
         return #self.collectibles
     elseif 2 == self.currentType then
@@ -121,8 +136,16 @@ end
 
 function editor_update(dt, editor)
     editor.cursorAnimation:update(dt)
-    local mouse_x, mouse_y, left_mouse_button_pressed, right_mouse_button_pressed
     editor:handleMouseEditor()
+    editor:handleKeyboard()
+end
+
+function Editor:handleKeyboard()
+    local q, e = love.keyboard.isDown("q"), love.keyboard.isDown("e")
+	local direction = 0
+	if q then direction = direction - 1	end
+	if e then direction = direction + 1 end
+	self:changeIndex(direction)
 end
 
 function Editor:queryCoordinate(x, y)
@@ -145,7 +168,7 @@ function Editor:queryCoordinate(x, y)
 end
 
 function Editor:insertBlock(x,y)
-    local editor_type = editor:getCurrentTile()
+    local editor_type = self:getCurrentTile()
     if editor_type.kind_type == constants.editor_constants.tile then
         table.insert(self.level.tiles, Tile:newTile((x - (x % editor_type.width)), (y - (y % editor_type.width)), tile_index + LUA_INDEX_OFFSET))
         table.sort( self.level.tiles, compare )
@@ -198,11 +221,7 @@ end
 
 function editor_draw(editor)
     -- Draw blocks
-    for i = #editor.level.tiles, 1, -1 do
-        local tile = editor.level.tiles[i];
-        --local sprite = editor.tiles[tile.name].sprite;
-        draw_tile(tile)
-    end
+    editor.tileManager:draw()
 
     for i = #editor.level.collectibles, 1, -1 do
         local collectible = entities.collectibles[i];
@@ -211,7 +230,7 @@ function editor_draw(editor)
     end
 
     for i = #editor.level.events, 1, -1 do
-        if entities.event_tiles[i] ~= nil then -- HACK
+        if entities.event_tiles[i] ~= nil then -- HACK (Explanation: If end is placed before start, we don't have the possiblity of drawing start)
             local event = editor.level.event_tiles[i];
             draw_tile(event)
         end
@@ -231,7 +250,7 @@ function editor_draw(editor)
     love.graphics.draw(currentEditorTile.sprite.sprite, 22 * horisontal_draw_scale, 182 * vertical_draw_scale, 0, currentEditorTile.scale_x * horisontal_draw_scale, currentEditorTile.scale_y * vertical_draw_scale)
 
     if love.keyboard.isDown("escape") then
-        save_level("with_collectibles.lvl")
+        --save_level("with_collectibles.lvl")
         love.event.quit();
     end
 
