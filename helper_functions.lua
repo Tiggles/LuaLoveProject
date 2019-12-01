@@ -78,7 +78,7 @@ end
 
 function init_entities()
     entities = {
-        player = Player:new(20, 20, 20, 20, "Assets/Character1.png", 0.5, 0.25),
+        player = Player:new(20, 20, 20, 20, "Assets/tileframe.png", 0.5, 0.25),
         enemies = {},
         blocks = {},
         animations = {},
