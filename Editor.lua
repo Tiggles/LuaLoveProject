@@ -1,6 +1,7 @@
 local anim8 = require "anim8/anim8"
 
 Editor = {}
+local next_block_interaction = 0
 local LUA_INDEX_OFFSET = 1
 local TYPE_COUNT = 4
 -- Types:
@@ -161,6 +162,7 @@ function Editor:queryCoordinate(x, y)
     local tile = self:getCurrentTile()
     for i = 1, #self.level.tiles do
         local tile = self.level.tiles[i]
+        print(self.level.tiles[i])
         local collision_block = { position = tile.position, width = kind.width, height = kind.height }
         if check_collision(collision_block, { position = { x = x, y = y }, width = 1, height = 1 }) then
             return true
@@ -197,15 +199,19 @@ end
 function Editor:handleMouseEditor()
     local x, y = love.mouse.getX() / horisontal_draw_scale, love.mouse.getY() / vertical_draw_scale
     local left, right = love.mouse.isDown(1), love.mouse.isDown(2)
+
+    if love.timer.getTime() == nil then love.quit() end
     if left and next_block_interaction < love.timer.getTime() then
         local occupied_space = self:queryCoordinate(x, y)
         if not occupied_space then
             self:insertBlock(x, y)
         end
+        next_block_interaction = love.timer.getTime() + 0.5
     end
 
     if right and next_block_interaction < love.timer.getTime() then
         self:removeBlock(x,y)
+        next_block_interaction = love.timer.getTime() + 0.5
     end
 end
 
