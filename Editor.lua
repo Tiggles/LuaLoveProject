@@ -104,7 +104,6 @@ end
 function Editor:changeType(direction)
     if not self:allowedChange() then return end
     self.currentType = self.currentType + direction % TYPE_COUNT
-    self.currentIndex = 0
     self:updateAllowedChange()
 end
 
@@ -144,18 +143,10 @@ end
 
 function Editor:handleKeyboard()
     local q, e = love.keyboard.isDown("q"), love.keyboard.isDown("e")
-    local w, s = love.keyboard.isDown("w"), love.keyboard.isDown("s")
-    -- Update tile
-	local tileDirection = 0
-	if q then tileDirection = tileDirection - 1	end
-    if e then tileDirection = tileDirection + 1 end
-    self:changeIndex(tileDirection)
-    
-    -- Update type
-    local typeDirection = 0
-    if w then typeDirection = typeDirection + 1 end
-    if s then typeDirection = typeDirection + 1 end
-    self:changeType(typeDirection)
+	local direction = 0
+	if q then direction = direction - 1	end
+	if e then direction = direction + 1 end
+	self:changeIndex(direction)
 end
 
 function Editor:queryCoordinate(x, y)
