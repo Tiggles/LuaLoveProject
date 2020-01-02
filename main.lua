@@ -107,7 +107,6 @@ memory_usage = 0
 last_memory_check = love.timer.getTime()
 
 function love.draw()
-	print("draw")
 	if editor_mode then
 		editor_draw(editor)
 	else
